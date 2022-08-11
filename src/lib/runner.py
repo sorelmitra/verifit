@@ -20,6 +20,7 @@ class Runner(BasicRunner):
     def cli(self,
             command,
             variables=None,
+            check_token=None,
             use_expected_output=True,
             strip_regex=None,
             strip_keys=None,
@@ -27,19 +28,19 @@ class Runner(BasicRunner):
         self._prepare_for_test()
         if variables is not None:
             self._create_vars(self.get_input_filename(), variables)
-        return self._run_test_command(command, strip_regex, strip_keys, sort, False, use_expected_output)
+        return self._run_test_command(command, strip_regex, strip_keys, sort, check_token, use_expected_output)
 
-    def login(self, path, username, password):
+    def login(self, path, username, password, check_token=None):
         return self.rest(path=path, method="POST",
                          use_input_file=False, use_expected_output=False,
                          input_data_raw={"username": username,
                                          "password": password},
-                         use_token=False, check_token=True)
+                         use_token=False, check_token=check_token)
 
-    def login_graphql(self, input_filename, variables):
+    def login_graphql(self, input_filename, variables, check_token=None):
         self._local_stack_number += 1
         self._create_vars(input_filename, variables)
-        expected, actual = self.graphql(use_token=False, check_token=True, use_expected_output=False)
+        expected, actual = self.graphql(use_token=False, check_token=check_token, use_expected_output=False)
         self._local_stack_number -= 1
         return expected, actual
 
@@ -50,7 +51,7 @@ class Runner(BasicRunner):
              variables=None,
              filetype=None,
              use_token=True,
-             check_token=False,
+             check_token=None,
              use_input_file=True,
              input_data_raw=None,
              use_output_file=True,
@@ -100,7 +101,7 @@ class Runner(BasicRunner):
                 server_private=None,
                 variables=None,
                 use_token=True,
-                check_token=False,
+                check_token=None,
                 use_expected_output=True,
                 strip_regex=None,
                 strip_keys=None,
@@ -157,20 +158,25 @@ class Runner(BasicRunner):
             self._cleanup_after_test()
             if self._had_exception:
                 raise self._actual
-            if check_token:
+            if check_token is not None:
                 res = json.loads(self._actual)
                 self._expected = "a token was returned (don't care about its value)"
-                try:
-                    self._token = res['accessToken']
-                    self._actual = self._expected
-                except KeyError:
+                found = False
+                for token_value in check_token:
                     try:
-                        self._token = res['data']['login']['accessToken']
+                        # print("XXXXXXXX", f"Checking if {token_value} is in {res}")
+                        properties = token_value.split('.')
+                        for prop in properties:
+                            res = res[prop]
+                        self._token = res
                         self._actual = self._expected
+                        found = True
                     except KeyError:
-                        self._actual = f"no token was returned"
-                if not use_expected_output:
-                    os.unlink(output_filename)
+                        pass
+                if not found:
+                    self._actual = f"no token was returned"
+            if not use_expected_output:
+                os.unlink(output_filename)
             return self._expected, self._actual
 
     def _prepare_for_test(self, filetype=None):
