@@ -1,6 +1,6 @@
 import textwrap
 
-from verifit import *
+from mobile_tool import *
 
 
 @pytest.mark.skip(reason="Outdated")

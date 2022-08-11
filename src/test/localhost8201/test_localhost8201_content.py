@@ -5,7 +5,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.expected_conditions import presence_of_element_located
 
 from login import *
-from verifit import *
+from mobile_tool import *
 
 
 @pytest.mark.skip(reason="Outdated")

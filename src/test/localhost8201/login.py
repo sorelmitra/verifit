@@ -6,7 +6,7 @@ from selenium.webdriver.support.expected_conditions import presence_of_element_l
 
 
 def login(driver, wait, link_to_check):
-	driver.get("http://localhost:8201")
+	driver.get_and_update("http://localhost:8201")
 	driver.find_element_by_link_text("Login").click()
 	wait.until(presence_of_element_located((By.NAME, "username")))
 	driver.find_element_by_name("username").send_keys("admin@admin.com")

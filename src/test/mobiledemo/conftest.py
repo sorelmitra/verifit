@@ -1,6 +1,5 @@
-import os
+from mobile_tool import *
 
-from verifit import configure_logging_and_screenshots
 
 def pytest_configure(config):
 	configure_logging_and_screenshots(config)

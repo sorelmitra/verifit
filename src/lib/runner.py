@@ -1,12 +1,15 @@
-from verifit import *
+import traceback
+
+from basic_runner import *
 from config_tool import *
 from graphql_tool import GraphQLTool
 from websockets_tool import WebsocketsTool
 
 
-class Runner:
+class Runner(BasicRunner):
     def __init__(self):
-        self._stack_number = 3
+        super().__init__()
+        self._local_stack_number = 3
         self._had_exception = None
         self._actual = None
         self._expected = None
@@ -23,7 +26,7 @@ class Runner:
             sort=None):
         self._prepare_for_test("json")
         if variables is not None:
-            self._create_vars(get_input_filename(), variables)
+            self._create_vars(self.get_input_filename(), variables)
         return self._run_test_command(command, strip_regex, strip_keys, sort, False, use_expected_output)
 
     def login(self, path, username, password):
@@ -34,10 +37,10 @@ class Runner:
                          use_token=False, check_token=True)
 
     def login_graphql(self, input_filename, variables):
-        self._stack_number += 1
+        self._local_stack_number += 1
         self._create_vars(input_filename, variables)
         expected, actual = self.graphql(use_token=False, check_token=True, use_expected_output=False)
-        self._stack_number -= 1
+        self._local_stack_number -= 1
         return expected, actual
 
     def rest(self,
@@ -70,7 +73,7 @@ class Runner:
             ]
         if use_input_file:
             command += [
-                "--data-binary", f"@{get_input_filename()}",
+                "--data-binary", f"@{self.get_input_filename()}",
             ]
         if input_data_raw is not None:
             command += [
@@ -78,7 +81,7 @@ class Runner:
             ]
         if use_output_file:
             command += [
-                "--output", f"{get_output_filename()}",
+                "--output", f"{self.get_output_filename()}",
             ]
         if retrieve_headers:
             command += [
@@ -89,7 +92,7 @@ class Runner:
                 "--location",
             ]
         if variables is not None:
-            self._create_vars(get_input_filename(), variables)
+            self._create_vars(self.get_input_filename(), variables)
         return self._run_test_command(command, strip_regex, strip_keys, sort, check_token, use_expected_output)
 
     def graphql(self,
@@ -106,11 +109,11 @@ class Runner:
         gql_tool = GraphQLTool(
             server_public=server_public,
             server_private=server_private,
-            input_filename=get_input_filename(),
+            input_filename=self.get_input_filename(),
             use_token=use_token,
             token=self._token)
         if variables is not None:
-            self._create_vars(get_input_filename(), variables)
+            self._create_vars(self.get_input_filename(), variables)
         return self._run_test_command(gql_tool.prepare_query_and_command(),
                                       strip_regex, strip_keys, sort,
                                       check_token, use_expected_output)
@@ -125,23 +128,23 @@ class Runner:
                   sort=None):
         self._prepare_for_test("json")
         if variables is not None:
-            self._create_vars(get_input_filename(), variables)
+            self._create_vars(self.get_input_filename(), variables)
         ws_tool = WebsocketsTool(server=server,
-                                 input_filename=get_input_filename(),
-                                 output_filename=get_output_filename(),
+                                 input_filename=self.get_input_filename(),
+                                 output_filename=self.get_output_filename(),
                                  ignore_list=ignore_messages)
-        return run_test(func=ws_tool.run,
+        return self.run(func=ws_tool.run,
                         use_expected_output=use_expected_output,
                         strip_regex=strip_regex,
                         strip_keys=strip_keys,
                         sort=sort)
 
     def _run_test_command(self, command, strip_regex, strip_keys, sort, check_token, use_expected_output=True):
-        set_stack_number(self._stack_number)
-        output_filename = get_output_filename()
+        self._stack_number = self._local_stack_number
+        output_filename = self.get_output_filename()
         try:
-            print(f"Running command: {' '.join(command)}")
-            self._expected, self._actual = run_test(command=command,
+            # print('XXXXXXXX', f"Running command: {' '.join(command)}")
+            self._expected, self._actual = self.run(command=command,
                                                     use_expected_output=use_expected_output,
                                                     strip_regex=strip_regex,
                                                     strip_keys=strip_keys,
@@ -149,7 +152,7 @@ class Runner:
         except Exception as e:
             _had_exception = True
             self._actual = e
-            print(e)
+            traceback.print_exc()
         finally:
             self._cleanup_after_test()
             if self._had_exception:
@@ -171,17 +174,17 @@ class Runner:
             return self._expected, self._actual
 
     def _prepare_for_test(self, filetype):
-        self._old_filetype = get_data_file_type()
+        self._old_filetype = self._data_file_type
         if filetype is not None:
-            set_data_file_type(filetype)
-        self._old_stack_number = get_stack_number()
-        set_stack_number(self._stack_number - 1)
+            self._data_file_type = filetype
+        self._old_stack_number = self._stack_number
+        self._stack_number = self._local_stack_number - 1
         self._expected, self._actual = "the test was run", "something happened"
         self._had_exception = False
 
     def _cleanup_after_test(self):
-        set_stack_number(self._old_stack_number)
-        set_data_file_type(self._old_filetype)
+        self._stack_number = self._old_stack_number
+        self._data_file_type = self._old_filetype
 
     def _create_vars(self, input_filename, variables):
         filename_no_ext, _ = os.path.splitext(input_filename)
