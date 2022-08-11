@@ -158,23 +158,7 @@ class Runner(BasicRunner):
             self._cleanup_after_test()
             if self._had_exception:
                 raise self._actual
-            if check_token is not None:
-                res = json.loads(self._actual)
-                self._expected = "a token was returned (don't care about its value)"
-                found = False
-                for token_value in check_token:
-                    try:
-                        # print("XXXXXXXX", f"Checking if {token_value} is in {res}")
-                        properties = token_value.split('.')
-                        for prop in properties:
-                            res = res[prop]
-                        self._token = res
-                        self._actual = self._expected
-                        found = True
-                    except KeyError:
-                        pass
-                if not found:
-                    self._actual = f"no token was returned"
+            self._check_token(check_token)
             if not use_expected_output:
                 os.unlink(output_filename)
             return self._expected, self._actual
@@ -203,6 +187,27 @@ class Runner(BasicRunner):
             with open(vars_filename, "wt") as f_vars:
                 f_vars.write(graphql_vars)
         self._cleanup_after_test()
+
+    def _check_token(self, check_token):
+        if check_token is None:
+            return
+
+        res = json.loads(self._actual)
+        self._expected = "a token was returned (don't care about its value)"
+        found = False
+        for token_value in check_token:
+            try:
+                # print("XXXXXXXX", f"Checking if {token_value} is in {res}")
+                properties = token_value.split('.')
+                for prop in properties:
+                    res = res[prop]
+                self._token = res
+                self._actual = self._expected
+                found = True
+            except KeyError:
+                pass
+        if not found:
+            self._actual = f"no token was returned"
 
 
 runner = Runner()
