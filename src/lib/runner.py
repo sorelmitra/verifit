@@ -24,7 +24,7 @@ class Runner(BasicRunner):
             strip_regex=None,
             strip_keys=None,
             sort=None):
-        self._prepare_for_test("json")
+        self._prepare_for_test()
         if variables is not None:
             self._create_vars(self.get_input_filename(), variables)
         return self._run_test_command(command, strip_regex, strip_keys, sort, False, use_expected_output)
@@ -105,7 +105,7 @@ class Runner(BasicRunner):
                 strip_regex=None,
                 strip_keys=None,
                 sort=None):
-        self._prepare_for_test("json")
+        self._prepare_for_test()
         gql_tool = GraphQLTool(
             server_public=server_public,
             server_private=server_private,
@@ -126,7 +126,7 @@ class Runner(BasicRunner):
                   strip_regex=None,
                   strip_keys=None,
                   sort=None):
-        self._prepare_for_test("json")
+        self._prepare_for_test()
         if variables is not None:
             self._create_vars(self.get_input_filename(), variables)
         ws_tool = WebsocketsTool(server=server,
@@ -173,7 +173,7 @@ class Runner(BasicRunner):
                     os.unlink(output_filename)
             return self._expected, self._actual
 
-    def _prepare_for_test(self, filetype):
+    def _prepare_for_test(self, filetype=None):
         self._old_filetype = self._data_file_type
         if filetype is not None:
             self._data_file_type = filetype

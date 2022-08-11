@@ -22,3 +22,8 @@ def test_rest_api_get_strip_keys():
     expected, actual = runner.rest(path='/todos/1', method='GET', use_input_file=False,
                                    strip_keys=['id']) # strip id from response with keys
     assert actual == expected
+
+
+def test_rest_api_filetype():
+    expected, actual = runner.rest(path='/posts', method='POST', filetype='txt') # use txt filetype
+    assert actual == expected
