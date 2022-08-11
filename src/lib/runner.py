@@ -9,12 +9,14 @@ from websockets_tool import WebsocketsTool
 class Runner(BasicRunner):
     def __init__(self):
         super().__init__()
-        self._local_stack_number = 3
+        # When using the various filenames from this class,
+        # we need to account for another function in the stack.
+        self._local_stack_number = self._stack_number + 1
+        self._old_stack_number = None
+        self._old_filetype = None
         self._had_exception = None
         self._actual = None
         self._expected = None
-        self._old_stack_number = None
-        self._old_filetype = None
         self._token = ''
 
     def cli(self,
@@ -50,12 +52,11 @@ class Runner(BasicRunner):
                                          "password": password},
                          use_token=False, check_token=check_token)
 
-    def login_graphql(self, input_filename, variables, check_token=None):
-        self._local_stack_number += 1
-        self._create_vars(input_filename, variables)
-        expected, actual = self.graphql(use_token=False, check_token=check_token, use_expected_output=False)
-        self._local_stack_number -= 1
-        return expected, actual
+    def login_graphql(self, variables, check_token):
+        return self.graphql(variables=variables,
+                            use_token=False,
+                            check_token=check_token,
+                            use_expected_output=False)
 
     def rest(self,
              server=None,
@@ -198,7 +199,7 @@ class Runner(BasicRunner):
         if filetype is not None:
             self._data_file_type = filetype
         self._old_stack_number = self._stack_number
-        self._stack_number = self._local_stack_number - 1
+        self._stack_number = self._local_stack_number
         self._expected, self._actual = "the test was run", "something happened"
         self._had_exception = False
 
