@@ -26,9 +26,22 @@ class Runner(BasicRunner):
             strip_keys=None,
             sort=None):
         self._prepare_for_test()
+
         if variables is not None:
             self._create_vars(self.get_input_filename(), variables)
-        return self._run_test_command(command, strip_regex, strip_keys, sort, check_token, use_expected_output)
+
+        try:
+            self._expected, self._actual = self.run(command=command,
+                                                    use_expected_output=use_expected_output,
+                                                    strip_regex=strip_regex,
+                                                    strip_keys=strip_keys,
+                                                    sort=sort)
+        except Exception as e:
+            self._handle_exception(e)
+        finally:
+            self._cleanup_after_test(check_token, use_expected_output)
+
+        return self._expected, self._actual
 
     def login(self, path, username, password, check_token=None):
         return self.rest(path=path, method="POST",
@@ -62,6 +75,7 @@ class Runner(BasicRunner):
              strip_keys=None,
              sort=None):
         self._prepare_for_test(filetype)
+
         if server is None:
             server = Config.value["REST_SERVER"]
         command = [
@@ -92,9 +106,22 @@ class Runner(BasicRunner):
             command += [
                 "--location",
             ]
+
         if variables is not None:
             self._create_vars(self.get_input_filename(), variables)
-        return self._run_test_command(command, strip_regex, strip_keys, sort, check_token, use_expected_output)
+
+        try:
+            self._expected, self._actual = self.run(command=command,
+                                                    use_expected_output=use_expected_output,
+                                                    strip_regex=strip_regex,
+                                                    strip_keys=strip_keys,
+                                                    sort=sort)
+        except Exception as e:
+            self._handle_exception(e)
+        finally:
+            self._cleanup_after_test(check_token, use_expected_output)
+
+        return self._expected, self._actual
 
     def graphql(self,
                 server_public=None,
@@ -107,6 +134,7 @@ class Runner(BasicRunner):
                 strip_keys=None,
                 sort=None):
         self._prepare_for_test()
+
         gql_tool = GraphQLTool(
             server_public=server_public,
             server_private=server_private,
@@ -115,53 +143,55 @@ class Runner(BasicRunner):
             token=self._token)
         if variables is not None:
             self._create_vars(self.get_input_filename(), variables)
-        return self._run_test_command(gql_tool.prepare_query_and_command(),
-                                      strip_regex, strip_keys, sort,
-                                      check_token, use_expected_output)
+        command = gql_tool.prepare_query_and_command()
 
-    def websocket(self,
-                  server=None,
-                  variables=None,
-                  use_expected_output=True,
-                  ignore_messages=None,
-                  strip_regex=None,
-                  strip_keys=None,
-                  sort=None):
-        self._prepare_for_test()
-        if variables is not None:
-            self._create_vars(self.get_input_filename(), variables)
-        ws_tool = WebsocketsTool(server=server,
-                                 input_filename=self.get_input_filename(),
-                                 output_filename=self.get_output_filename(),
-                                 ignore_list=ignore_messages)
-        return self.run(func=ws_tool.run,
-                        use_expected_output=use_expected_output,
-                        strip_regex=strip_regex,
-                        strip_keys=strip_keys,
-                        sort=sort)
-
-    def _run_test_command(self, command, strip_regex, strip_keys, sort, check_token, use_expected_output=True):
-        self._stack_number = self._local_stack_number
-        output_filename = self.get_output_filename()
         try:
-            # print('XXXXXXXX', f"Running command: {' '.join(command)}")
             self._expected, self._actual = self.run(command=command,
                                                     use_expected_output=use_expected_output,
                                                     strip_regex=strip_regex,
                                                     strip_keys=strip_keys,
                                                     sort=sort)
         except Exception as e:
-            _had_exception = True
-            self._actual = e
-            traceback.print_exc()
+            self._handle_exception(e)
         finally:
-            self._cleanup_after_test()
-            if self._had_exception:
-                raise self._actual
-            self._check_token(check_token)
-            if not use_expected_output:
-                os.unlink(output_filename)
-            return self._expected, self._actual
+            self._cleanup_after_test(check_token, use_expected_output)
+
+        return self._expected, self._actual
+
+    def websocket(self,
+                  server=None,
+                  variables=None,
+                  check_token=None,
+                  use_expected_output=True,
+                  ignore_messages=None,
+                  strip_regex=None,
+                  strip_keys=None,
+                  sort=None):
+        self._prepare_for_test()
+
+        if variables is not None:
+            self._create_vars(self.get_input_filename(), variables)
+        ws_tool = WebsocketsTool(server=server,
+                                 input_filename=self.get_input_filename(),
+                                 output_filename=self.get_output_filename(),
+                                 ignore_list=ignore_messages)
+        try:
+            self._expected, self._actual = self.run(func=ws_tool.run,
+                        use_expected_output=use_expected_output,
+                        strip_regex=strip_regex,
+                        strip_keys=strip_keys,
+                        sort=sort)
+        except Exception as e:
+            self._handle_exception(e)
+        finally:
+            self._cleanup_after_test(check_token, use_expected_output)
+
+        return self._expected, self._actual
+
+    def _handle_exception(self, e):
+        self._had_exception = True
+        self._actual = e
+        traceback.print_exc()
 
     def _prepare_for_test(self, filetype=None):
         self._old_filetype = self._data_file_type
@@ -172,9 +202,16 @@ class Runner(BasicRunner):
         self._expected, self._actual = "the test was run", "something happened"
         self._had_exception = False
 
-    def _cleanup_after_test(self):
+    def _cleanup_after_test(self, check_token, use_expected_output):
+        output_filename = self.get_output_filename()
         self._stack_number = self._old_stack_number
         self._data_file_type = self._old_filetype
+
+        if self._had_exception:
+            raise self._actual
+        self._check_token(check_token)
+        if not use_expected_output:
+            os.unlink(output_filename)
 
     def _create_vars(self, input_filename, variables):
         filename_no_ext, _ = os.path.splitext(input_filename)
@@ -186,7 +223,6 @@ class Runner(BasicRunner):
                 graphql_vars = graphql_vars.replace(f"${{{key}}}", value)
             with open(vars_filename, "wt") as f_vars:
                 f_vars.write(graphql_vars)
-        self._cleanup_after_test()
 
     def _check_token(self, check_token):
         if check_token is None:
