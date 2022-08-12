@@ -1,3 +1,3 @@
-class TestException(Exception):
+class RunException(Exception):
     pass
 

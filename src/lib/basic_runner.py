@@ -21,9 +21,9 @@ class BasicRunner(RelativePath):
             update_snapshot=False, strip_regex=None, strip_keys=None,
             sort=None, use_expected_output=True):
         if command is None and func is None:
-            raise TestException("Either command or func must be specified")
+            raise RunException("Either command or func must be specified")
         elif command is not None and func is not None:
-            raise TestException("Only one of command or func must be specified")
+            raise RunException("Only one of command or func must be specified")
 
         try:
             os.unlink(self.get_output_filename(offset=1))

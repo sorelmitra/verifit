@@ -51,7 +51,7 @@ class Results:
                     dict_content = self._do_strip_keys(dict_content)
                 formatted_content = json.dumps(dict_content, indent=2)
                 content = formatted_content
-            except TestException as e:
+            except RunException as e:
                 raise e
             except json.decoder.JSONDecodeError:
                 pass
@@ -76,7 +76,7 @@ class Results:
                     # print("XXXXXXXX", 3, "key", key, "inner_dict", inner_dict)
                 except KeyError:
                     # print("XXXXXXXX", 4, key)
-                    raise TestException(f"Could not find list {list_name} in {filepath}: missing key <{key}>")
+                    raise RunException(f"Could not find list {list_name} in {filepath}: missing key <{key}>")
             if i is not None:
                 key = keys[i + 1]
             try:
@@ -88,7 +88,7 @@ class Results:
                     inner_dict[key] = sorted(inner_dict[key], key=lambda x: x[field])
                 # print("XXXXXXXX", 6, "inner_dict", inner_dict)
             except KeyError:
-                raise TestException(f"Could not sort list {list_name} in {filepath}: missing field <{field}> in list")
+                raise RunException(f"Could not sort list {list_name} in {filepath}: missing field <{field}> in list")
         # print("XXXXXXXX", 8, sorted_dict)
         return sorted_dict
 
