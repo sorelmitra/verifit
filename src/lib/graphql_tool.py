@@ -15,11 +15,11 @@ class GraphQLTool:
         if use_token:
             self._server = server_private
             if self._server is None:
-                self._server = Config.value["GRAPHQL_SERVER_PUBLIC"]
+                self._server = Config.value["GRAPHQL_SERVER_PRIVATE"]
         else:
             self._server = server_public
-        if self._server is None:
-            self._server = Config.value["GRAPHQL_SERVER_PRIVATE"]
+            if self._server is None:
+                self._server = Config.value["GRAPHQL_SERVER_PUBLIC"]
         
         self._filename_graphql_opname = input_filename
         self._fill_in_filenames()
