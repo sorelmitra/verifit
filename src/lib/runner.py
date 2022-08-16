@@ -74,6 +74,7 @@ class Runner(BasicRunner):
              follow_redirects=False,
              strip_regex=None,
              strip_keys=None,
+             strip_key_values_regex=None,
              sort=None):
         self._prepare_for_test(filetype)
 
@@ -116,6 +117,7 @@ class Runner(BasicRunner):
                                                     use_expected_output=use_expected_output,
                                                     strip_regex=strip_regex,
                                                     strip_keys=strip_keys,
+                                                    strip_key_values_regex=strip_key_values_regex,
                                                     sort=sort)
         except Exception as e:
             self._handle_exception(e)
@@ -133,6 +135,7 @@ class Runner(BasicRunner):
                 use_expected_output=True,
                 strip_regex=None,
                 strip_keys=None,
+                strip_key_values_regex=None,
                 sort=None):
         self._prepare_for_test()
 
@@ -151,6 +154,7 @@ class Runner(BasicRunner):
                                                     use_expected_output=use_expected_output,
                                                     strip_regex=strip_regex,
                                                     strip_keys=strip_keys,
+                                                    strip_key_values_regex=strip_key_values_regex,
                                                     sort=sort)
         except Exception as e:
             self._handle_exception(e)

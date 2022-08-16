@@ -166,6 +166,10 @@ The test functions:
     - `use_expected_output`: Whether to require the expected output file to be present.  If set to `False`, the value of `expected` from the returned tuple is `None`.
     - `strip_regex`: Strip the response body of content matching these regexes. This treats the response body as a string. The regexes are passed in as an array, e.g. `[r"a.*b", r"c.+d"]`.
     - `strip_keys`: Strip the response body of keys matching this regex. This treats the response body as a dictionary (JSON). The regexes are passed in as an array, e.g. `["data.posts", "data.indexes"]`.
+    - `strip_key_values_regex`: Strip the response body of objects that have inside them key-value pairs matching these regexes. This treats the response body as a dictionary (JSON). The regexes are passed in as an array.
+        - Example value: `[{'key': 'data.list', 'type': 'list',
+             'sub_key': 'name', 'value_regex': r'(TEST|TEMP).*'}]`.
+        - The above would strip objects that have a `"name": "TESTabc"` or `"name": "TEMPdef"` from a list like `[{"name": "TESTabc", "other": "value"}, {"name": "TEMPdef", "other": "value"}]`:
     - `sort`: Sort the response body. This treats the response body as a list of dictionaries (JSON). The value of this parameter is an array of objects with the following fields:
         - `list`: The compound key to sort on. An empty list (`''`) name means sort the top list, otherwise it's a field designation, such as `'data.posts'`.
         - `field`: The field to sort on, e.g. `id`.

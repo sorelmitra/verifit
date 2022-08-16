@@ -15,6 +15,7 @@ class Results:
                  update_snapshot=None,
                  strip_regex=None,
                  strip_keys=None,
+                 strip_key_values_regex=None,
                  sort=None):
         self._use_expected_output = use_expected_output
         self._expected_output_filename = expected_output_filename
@@ -22,6 +23,7 @@ class Results:
         self._update_snapshot = update_snapshot
         self._strip_regex = strip_regex
         self._strip_keys = strip_keys
+        self._strip_key_values_regex = strip_key_values_regex
         self._sort = sort
         self._stripped_values = []
 
@@ -49,6 +51,8 @@ class Results:
                     dict_content = self._sort_dict_lists(filepath, dict_content)
                 if self._strip_keys is not None:
                     dict_content = self._do_strip_keys(dict_content)
+                if self._strip_key_values_regex is not None:
+                    dict_content = self._do_strip_key_values_regex(dict_content)
                 formatted_content = json.dumps(dict_content, indent=2)
                 content = formatted_content
             except RunException as e:
@@ -99,24 +103,54 @@ class Results:
 
     def _do_strip_keys(self, dict_content):
         self._stripped_values = []
-        # print("XXXXXXXX", 1, strip_keys)
-        for compound_key in self._strip_keys:
-            keys = compound_key.split('.')
-            # print("XXXXXXXX", 2, keys)
-            inner_dict = dict_content
-            i = None
-            for i in range(len(keys) - 1):
-                key = keys[i]
-                inner_dict = inner_dict.get_and_update(key)
-            if i is None:
-                last_key = keys[0]
-            else:
-                last_key = keys[i + 1]
-            # print("XXXXXXXX", 3, last_key)
-            self._stripped_values.append(inner_dict[last_key])
+        for key in self._strip_keys:
+            keys_array = key.split('.')
+            inner_dict, last_key = Results._walk_dict_to_key(dict_content, keys_array)
+            value = inner_dict[last_key]
+            self._stripped_values.append(value)
             del inner_dict[last_key]
-            # print("XXXXXXXX", 4, stripped_values)
         return dict_content
+
+    def _do_strip_key_values_regex(self, dict_content):
+        self._stripped_values = []
+        strip_info_array = self._strip_key_values_regex
+        for strip_info in strip_info_array:
+            keys = strip_info['key'].split('.')
+            value_regex = strip_info['value_regex']
+            sub_key = strip_info['sub_key']
+            key_type = strip_info['type']
+            inner_dict, last_key = Results._walk_dict_to_key(dict_content, keys)
+            if last_key == '':
+                value = dict_content
+            else:
+                value = inner_dict[last_key]
+            print(f"Looking for '{sub_key}' regex '{value_regex}'", "in",
+                  json.dumps(value, indent=2), f"last key '{last_key}'")
+            if key_type == "list":
+                if last_key == '':
+                    dict_content = self._strip_list_regex(sub_key, value, value_regex)
+                else:
+                    inner_dict[last_key] = self._strip_list_regex(sub_key, value, value_regex)
+        return dict_content
+
+    @staticmethod
+    def _strip_list_regex(sub_key, value, value_regex):
+        return [x for x in value if not re.search(value_regex, x[sub_key])]
+
+    @staticmethod
+    def _walk_dict_to_key(dict_content, keys):
+        inner_dict = dict_content
+        i = None
+        for i in range(len(keys) - 1):
+            key = keys[i]
+            inner_dict = inner_dict.get(key)
+        if i is None:
+            last_key = keys[0]
+        else:
+            last_key = keys[i + 1]
+        if i is not None:
+            print("Walked to key", last_key, "value", inner_dict[last_key])
+        return inner_dict, last_key
 
     def _update_output_file_content(self, content):
         with open(self._output_filename, "wt") as f:

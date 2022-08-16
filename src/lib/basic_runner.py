@@ -18,7 +18,8 @@ class BasicRunner(RelativePath):
         return self._get_filename(suffix='-expected', offset=offset)
 
     def run(self, command=None, func=None,
-            update_snapshot=False, strip_regex=None, strip_keys=None,
+            update_snapshot=False,
+            strip_regex=None, strip_keys=None, strip_key_values_regex=None,
             sort=None, use_expected_output=True):
         if command is None and func is None:
             raise RunException("Either command or func must be specified")
@@ -42,6 +43,7 @@ class BasicRunner(RelativePath):
                           update_snapshot=update_snapshot,
                           strip_regex=strip_regex,
                           strip_keys=strip_keys,
+                          strip_key_values_regex=strip_key_values_regex,
                           sort=sort)
         return results.get_and_update()
 
