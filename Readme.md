@@ -58,11 +58,13 @@ Writing a test is as easy as:
             expected, actual = runner.cli(["cp", "-v", get_input_filename(), get_output_filename()])
             assert actual == expected
 
+
 2. Create a data file with the same name as the test function, `test_hello.json`:
 
         {
           "hello": "world"
         }
+
 
 3. Run the test:
 
@@ -70,7 +72,9 @@ Writing a test is as easy as:
 
     It will complain that there's no `expected` file.
 
+
 4. Since our app, `cp`, probably did its job correctly, just copy `test_hello-answer.json` to `test_hello-expected.json`.
+
 
 5. Run the test again:
 
@@ -78,7 +82,7 @@ Writing a test is as easy as:
 
     This time it will pass.
 
-Congrats! You wrote your first test!
+Congrats! You wrote your first test! You can find this particular example in `src/tests/hello`.
 
 ## Write a REST Test
 
@@ -88,12 +92,14 @@ We will be testing a publicly available dummy REST server. It is basically as si
 
         REST_SERVER=https://jsonplaceholder.typicode.com
 
+
 2. Create a file `test.py`, like this:
 
         from runner import *
         def test_placeholder():
             expected, actual = runner.rest(path='/posts', method='POST')
             assert actual == expected
+
 
 3. Create a data file, `test_placeholder.json`, like this:
 
@@ -103,23 +109,31 @@ We will be testing a publicly available dummy REST server. It is basically as si
             "userId": 1
         }
 
+
 4. Run the test:
 
         ENV=dev pytest .
 
     It will complain that there's no `expected` file. 
 
+
 5. Look at `test_placeholder-answer.json`. It contains the answer from our dummy server. If you're happy with the answer, you can go ahead and update the snapshot.
+
 
 6. Update the snapshot:
 
         UPDATE_SNAPSHOT=1 ENV=dev pytest .
 
+    It will pass, updating the snapshot in the process.
+
+
 7. Run the test again:
 
         ENV=dev pytest .
 
-    It will still pass.
+    It will pass.
+
+You can find this particular example in `src/tests/rest_api`.
 
 ## More Examples
 
@@ -175,7 +189,6 @@ The test functions:
         - `field`: The field to sort on, e.g. `id`.
        
       Example: `[{"list": "data.posts", "field": "id"}]`
-    - `sort`: 
 
 
 - `login`: Wrapper over the `rest` function that uses the given `path`, `username`, `password` to log in to the REST server.
@@ -191,13 +204,13 @@ The test functions:
     - `method`: The HTTP method to use.
     - `filetype`: Override the filetype to use for the input and output files. Uses `json` if not present.
     - `use_token`: Whether to use the API token when making the request.
-    - `check_token`: Whether to check if a token is present in the response. (This is useful when you're testing the login endpoint.)
+    - `check_token`: Whether to check if a token is present in the response.  It needs the path to the returned token inside the JSON object, e.g. `data.token`. (This is useful when you're testing the login endpoint.)
     - `use_input_file`: Whether to use the input file as payload for the request.
     - `input_data_raw`: Inline payload for the request.
     - `use_output_file`: Whether to save the response to the output file.  If set to `False`, the result of the request is ignored.
     - `retrieve_headers`: Whether to retrieve the headers from the response.
     - `follow_redirects`: Whether to follow redirects.
-    - `variables`, `use_expected_output`, `strip_regex`, `strip_keys`, `sort`: Same as for the `cli` function.
+    - `variables`, `use_expected_output`, `strip_regex`, `strip_keys`, `strip_key_values_regex`, `sort`: Same as for the `cli` function.
 
 
 - `graphql`: 
@@ -205,14 +218,14 @@ The test functions:
     - `server_public`: If present, the Public (unauthenticated) GraphQL server to use. If not present, it is read from the `.dev.env` file, from the `GRAPHQL_SERVER_PUBLIC` variable.
     - `server_private`: If present, the Private (authenticated) GraphQL server to use. If not present, it is read from the `.dev.env` file, from the `GRAPHQL_SERVER_PRIVATE` variable.
     - `use_token` , `check_token`: Same as for the `rest` function.
-    - `variables`, `use_expected_output`, `strip_regex`, `strip_keys`, `sort`: Same as for the `cli` function.
+    - `variables`, `use_expected_output`, `strip_regex`, `strip_keys`, `strip_key_values_regex`, `sort`: Same as for the `cli` function.
 
 
 - `websocket`: 
 
     - `server`: If present, the WebSocket server to use. If not present, it is read from the `.dev.env` file, from the `WEBSOCKETS_SERVER_URL` variable.
     - `ignore_messages`: An array of WebSocket response messages to ignore. (Useful with some servers that send periodic messages.)
-    - `variables`, `use_expected_output`, `strip_regex`, `strip_keys`, `sort`: Same as for the `cli` function.
+    - `variables`, `use_expected_output`, `strip_regex`, `strip_keys`, `strip_key_values_regex`, `sort`: Same as for the `cli` function.
 
 
 
