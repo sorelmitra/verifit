@@ -4,7 +4,7 @@ import os
 import re
 from shutil import copyfile
 
-from exceptions import *
+from exceptions import RunException
 
 
 class Results:

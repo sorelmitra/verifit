@@ -1,4 +1,4 @@
-from runner import *
+from runner import runner
 
 
 def test_graphql_1():

@@ -1,6 +1,6 @@
 import textwrap
 
-from mobile_tool import *
+import pytest
 
 
 @pytest.mark.skip(reason="Outdated")

@@ -1,4 +1,6 @@
-from mobile_tool import *
+import os
+
+from mobile_tool import configure_logging_and_screenshots
 
 
 def pytest_configure(config):

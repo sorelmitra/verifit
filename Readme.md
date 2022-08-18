@@ -53,7 +53,7 @@ Writing a test is as easy as:
 
 1. Create a file `test.py`, like this:
 
-        from runner import *
+        from runner import runner
         def test_hello():
             expected, actual = runner.cli(["cp", "-v", get_input_filename(), get_output_filename()])
             assert actual == expected
@@ -95,7 +95,7 @@ We will be testing a publicly available dummy REST server. It is basically as si
 
 2. Create a file `test.py`, like this:
 
-        from runner import *
+        from runner import runner
         def test_placeholder():
             expected, actual = runner.rest(path='/posts', method='POST')
             assert actual == expected

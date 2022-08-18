@@ -1,4 +1,4 @@
-from runner import *
+from runner import runner
 
 
 def test_rest_api_post_1():

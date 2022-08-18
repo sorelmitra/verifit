@@ -11,7 +11,7 @@ import pytest
 from appium import webdriver
 from selenium.common.exceptions import InvalidSessionIdException
 
-from relative_path import *
+from relative_path import RelativePath
 
 
 ANDROID_BASE_CAPS = {

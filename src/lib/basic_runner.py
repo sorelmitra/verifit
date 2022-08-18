@@ -1,7 +1,9 @@
+import os
 import subprocess
 
-from relative_path import *
-from results import *
+from exceptions import RunException
+from relative_path import RelativePath
+from results import Results
 
 
 class BasicRunner(RelativePath):

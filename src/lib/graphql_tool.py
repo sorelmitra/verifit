@@ -1,6 +1,7 @@
 import json
+import os
 
-from config_tool import *
+from config_tool import Config
 
 
 class GraphQLTool:

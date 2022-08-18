@@ -3,7 +3,7 @@ import re
 
 import websockets
 
-from config_tool import *
+from config_tool import Config
 
 
 class WebsocketsTool:
