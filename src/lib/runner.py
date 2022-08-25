@@ -195,6 +195,9 @@ class Runner(BasicRunner):
 
         return self._expected, self._actual
 
+    def get_stripped_values(self):
+        return self._results.get_stripped_values()
+
     def _handle_exception(self, e):
         self._had_exception = True
         self._actual = e

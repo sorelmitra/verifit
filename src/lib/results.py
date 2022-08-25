@@ -33,6 +33,9 @@ class Results:
         self._maybe_update_snapshot()
         expected = None
         if self._use_expected_output:
+            self._strip_regex = None
+            self._strip_keys = None
+            self._strip_key_values_regex = None
             expected = self._load_file_as_string(self._expected_output_filename)
         return expected, actual
 
@@ -97,12 +100,19 @@ class Results:
         return sorted_dict
 
     def _do_strip_regex(self, content):
+        self._stripped_values = []
+        print("Strip regex", self._strip_regex)
         for regex in self._strip_regex:
-            content = re.sub(regex, '', content)
+            m = re.search(regex, content)
+            if m is not None:
+                self._stripped_values.append(m.group(0))
+                print("Matched:", m, "group:", m.group(0), "stripped:", self._stripped_values)
+                content = re.sub(regex, '', content)
         return content
 
     def _do_strip_keys(self, dict_content):
         self._stripped_values = []
+        print("Strip keys")
         for key in self._strip_keys:
             keys_array = key.split('.')
             inner_dict, last_key = Results._walk_dict_to_key(dict_content, keys_array)
@@ -113,6 +123,7 @@ class Results:
 
     def _do_strip_key_values_regex(self, dict_content):
         self._stripped_values = []
+        print("Strip key/values regex")
         strip_info_array = self._strip_key_values_regex
         for strip_info in strip_info_array:
             keys = strip_info['key'].split('.')
@@ -128,14 +139,17 @@ class Results:
                   json.dumps(value, indent=2), f"last key '{last_key}'")
             if key_type == "list":
                 if last_key == '':
-                    dict_content = self._strip_list_regex(sub_key, value, value_regex)
+                    dict_content, stripped_values = self._strip_list_regex(sub_key, value, value_regex)
                 else:
-                    inner_dict[last_key] = self._strip_list_regex(sub_key, value, value_regex)
+                    inner_dict[last_key], stripped_values = self._strip_list_regex(sub_key, value, value_regex)
+                self._stripped_values.extend(stripped_values)
         return dict_content
 
     @staticmethod
     def _strip_list_regex(sub_key, value, value_regex):
-        return [x for x in value if not re.search(value_regex, x[sub_key])]
+        filtered_values = [x for x in value if not re.search(value_regex, x[sub_key])]
+        stripped_values = [x for x in value if re.search(value_regex, x[sub_key])]
+        return filtered_values, stripped_values
 
     @staticmethod
     def _walk_dict_to_key(dict_content, keys):

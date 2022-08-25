@@ -9,6 +9,7 @@ from results import Results
 class BasicRunner(RelativePath):
     def __init__(self):
         super().__init__()
+        self._results = None
 
     def get_input_filename(self, offset=0):
         return self._get_filename(offset=offset)
@@ -18,6 +19,9 @@ class BasicRunner(RelativePath):
 
     def get_expected_output_filename(self, offset=0):
         return self._get_filename(suffix='-expected', offset=offset)
+
+    def get_filename_with_suffix(self, suffix, offset=0):
+        return self._get_filename(suffix=suffix, offset=offset)
 
     def run(self, command=None, func=None,
             update_snapshot=False,
@@ -39,13 +43,12 @@ class BasicRunner(RelativePath):
             subprocess.run(command)
 
         # print('XXXXXXXX', 'getting results')
-        results = Results(use_expected_output=use_expected_output,
-                          expected_output_filename=self.get_expected_output_filename(offset=1),
-                          output_filename=self.get_output_filename(offset=1),
-                          update_snapshot=update_snapshot,
-                          strip_regex=strip_regex,
-                          strip_keys=strip_keys,
-                          strip_key_values_regex=strip_key_values_regex,
-                          sort=sort)
-        return results.get_and_update()
-
+        self._results = Results(use_expected_output=use_expected_output,
+                                expected_output_filename=self.get_expected_output_filename(offset=1),
+                                output_filename=self.get_output_filename(offset=1),
+                                update_snapshot=update_snapshot,
+                                strip_regex=strip_regex,
+                                strip_keys=strip_keys,
+                                strip_key_values_regex=strip_key_values_regex,
+                                sort=sort)
+        return self._results.get_and_update()

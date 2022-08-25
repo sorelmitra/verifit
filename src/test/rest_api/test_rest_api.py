@@ -1,3 +1,5 @@
+import json
+
 from runner import runner
 
 
@@ -16,12 +18,14 @@ def test_rest_api_get_strip_regex():
     expected, actual = runner.rest(path='/todos/1', method='GET', use_input_file=False,
                                    strip_regex=[r'"id": (\d+),.*\n'])  # strip id from response with regex
     assert actual == expected
+    assert ['"id": 1,\n'] == runner.get_stripped_values()
 
 
 def test_rest_api_get_strip_keys():
     expected, actual = runner.rest(path='/todos/1', method='GET', use_input_file=False,
                                    strip_keys=['id'])  # strip id from response with keys
     assert actual == expected
+    assert 1 == runner.get_stripped_values()[0]
 
 
 def test_rest_api_get_strip_key_values_regex():
@@ -33,6 +37,9 @@ def test_rest_api_get_strip_key_values_regex():
                                        'value_regex': r'.*qui.*'
                                    }])  # strip objects whose 'title' contains 'qui'
     assert actual == expected
+    with open(f"{runner.get_filename_with_suffix('-stripped')}") as f:
+        stripped_values = json.load(f)
+        assert stripped_values == runner.get_stripped_values()
 
 
 def test_rest_api_filetype():
