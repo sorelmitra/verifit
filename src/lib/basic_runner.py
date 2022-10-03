@@ -3,6 +3,8 @@ import os
 import subprocess
 import sys
 
+from collected_tests import CollectedTests
+from config_tool import Config
 from exceptions import RunException
 from relative_path import RelativePath
 from results import Results
@@ -69,3 +71,28 @@ class BasicRunner(RelativePath):
         diff = d.compare(expected.split('\n'), actual.split('\n'))
         [print(f"{bcolors.FAIL}{x}{bcolors.ENDC}", file=sys.stderr) for x in diff]
         return False
+
+    @staticmethod
+    def assert_one_passed(names):
+        passed = False
+        has_misspelled_name = False
+        print('Collected tests', CollectedTests.names)
+        for name in names:
+            collected, count = BasicRunner._was_collected(name)
+            if Config.value.get(f'{name}_started', False):
+                expected = Config.value.get(f'{name}_expected', '')
+                actual = Config.value.get(f'{name}_actual', '')
+                if not has_misspelled_name and BasicRunner.did_it_pass(f'{name}', expected, actual):
+                    passed = True
+            elif not collected:
+                BasicRunner.did_it_pass(name,
+                                        f'(test was amongst the {count} collected ones)',
+                                        f'(test was NOT amongst the {count} collected ones)\n'
+                                        f'(did you misspell its name?)')
+                passed = False
+                has_misspelled_name = True
+        assert passed
+
+    @staticmethod
+    def _was_collected(name):
+        return name in CollectedTests.names, len(CollectedTests.names)

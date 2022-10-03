@@ -228,7 +228,18 @@ The test functions:
     - `variables`, `use_expected_output`, `strip_regex`, `strip_keys`, `strip_key_values_regex`, `sort`: Same as for the `cli` function.
 
 
-- `did_it_pass`: Receives a `name`, an `expected`, and an `actual` value, and compares `actual` to `expected` while printing out differences, colored, to the `error` stream.  Essentially, it simulates an `assert`.  Useful if you have a situation where `test_` **or** `test_2` need to pass, and you only fail if **both** failed.  (Like, when testing different versions of the same code.) 
+- `did_it_pass`: Receives a `name`, an `expected`, and an `actual` value, and compares `actual` to `expected` while printing out differences, colored, to the `error` stream.  Returns whether `actual` was equal to `expected`.  Essentially, it simulates an `assert`.
+
+
+- `assert_one_passed`: Receives a list of test names, checks and asserts that at least one of them passed.  Uses `did_it_pass` to do its checks and print out differences.  Fails if the given test name was not collected by `pytest`. 
+
+  Useful if you have a situation where `test_` **or** `test_2` need to pass, and you only fail if **both** failed.  (
+  Like, when testing different versions of the same code.)
+  
+  For it to work, the tests that are being checked must set the following values in `Config`:
+    - `<test name>_started`: Set to `True` when it started.
+    - `<test name>_expected`: Set to the expected output of the test.
+    - `<test name>_actual`: Set to the actual output of the test.
 
 
 
