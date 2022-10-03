@@ -3,6 +3,8 @@ import json
 from runner import runner
 
 
+# The expected output of this test is slightly modified,
+# so you can see a test failure in action
 def test_rest_api_post_1():
     expected, actual = runner.rest(path='/posts', method='POST')
     assert actual == expected

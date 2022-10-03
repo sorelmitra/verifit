@@ -1,5 +1,7 @@
+import difflib
 import os
 import subprocess
+import sys
 
 from exceptions import RunException
 from relative_path import RelativePath
@@ -52,3 +54,18 @@ class BasicRunner(RelativePath):
                                 strip_key_values_regex=strip_key_values_regex,
                                 sort=sort)
         return self._results.get_and_update()
+
+    @staticmethod
+    def did_it_pass(name, expected, actual):
+        class bcolors:
+            FAIL = '\033[91m'
+            ENDC = '\033[0m'
+
+        if actual == expected:
+            return True
+
+        d = difflib.Differ()
+        print(f"\n{bcolors.FAIL}{name} FAILED:{bcolors.ENDC}", file=sys.stderr)
+        diff = d.compare(expected.split('\n'), actual.split('\n'))
+        [print(f"{bcolors.FAIL}{x}{bcolors.ENDC}", file=sys.stderr) for x in diff]
+        return False

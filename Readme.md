@@ -228,6 +228,9 @@ The test functions:
     - `variables`, `use_expected_output`, `strip_regex`, `strip_keys`, `strip_key_values_regex`, `sort`: Same as for the `cli` function.
 
 
+- `did_it_pass`: Receives a `name`, an `expected`, and an `actual` value, and compares `actual` to `expected` while printing out differences, colored, to the `error` stream.  Essentially, it simulates an `assert`.  Useful if you have a situation where `test_` **or** `test_2` need to pass, and you only fail if **both** failed.  (Like, when testing different versions of the same code.) 
+
+
 
 # UI Tests (outdated)
 
