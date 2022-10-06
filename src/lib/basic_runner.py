@@ -96,3 +96,10 @@ class BasicRunner(RelativePath):
     @staticmethod
     def _was_collected(name):
         return name in CollectedTests.names, len(CollectedTests.names)
+
+    @staticmethod
+    def get_all_props(class_name):
+        return [class_name.__dict__.get(attr)
+                for attr in dir(class_name)
+                if not callable(getattr(class_name, attr))
+                and not attr.startswith("__")]
