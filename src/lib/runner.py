@@ -198,6 +198,9 @@ class Runner(BasicRunner):
     def get_stripped_values(self):
         return self._results.get_stripped_values()
 
+    def get_token(self):
+        return self._token
+
     def _handle_exception(self, e):
         self._had_exception = True
         self._actual = e
