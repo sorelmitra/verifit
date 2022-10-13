@@ -213,7 +213,7 @@ The test functions:
     - `variables`, `use_expected_output`, `strip_regex`, `strip_keys`, `strip_key_values_regex`, `sort`: Same as for the `cli` function.
 
 
-- `graphql`: 
+- `graphql`: Wrapper over the `cli` function that builds a command that uses `cURL` to make a GraphQL request to the server. Parameters:
 
     - `server_public`: If present, the Public (unauthenticated) GraphQL server to use. If not present, it is read from the `.dev.env` file, from the `GRAPHQL_SERVER_PUBLIC` variable.
     - `server_private`: If present, the Private (authenticated) GraphQL server to use. If not present, it is read from the `.dev.env` file, from the `GRAPHQL_SERVER_PRIVATE` variable.
