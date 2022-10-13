@@ -44,7 +44,10 @@ class BasicRunner(RelativePath):
         if command is None:
             func()
         else:
-            subprocess.run(command)
+            print("Running command <<<", command, ">>>")
+            p = subprocess.run(command, capture_output=True)
+            print("Command output <<<", p.stdout.decode(), ">>>")
+            print("Command error output <<<", p.stderr.decode(), ">>>")
 
         # print('XXXXXXXX', 'getting results')
         self._results = Results(use_expected_output=use_expected_output,

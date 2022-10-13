@@ -48,11 +48,15 @@ class Runner(BasicRunner):
         return self._expected, self._actual
 
     def login(self, path, username, password, check_token=None):
-        return self.rest(path=path, method="POST",
-                         use_input_file=False, use_expected_output=False,
-                         input_data_raw={"username": username,
-                                         "password": password},
-                         use_token=False, check_token=check_token)
+        old_local_stack_number = self._local_stack_number
+        self._local_stack_number = self._stack_number + 2
+        expected, actual = self.rest(path=path, method="POST",
+                                     use_input_file=False, use_expected_output=False,
+                                     input_data_raw={"username": username,
+                                                     "password": password},
+                                     use_token=False, check_token=check_token)
+        self._local_stack_number = old_local_stack_number
+        return expected, actual
 
     def login_graphql(self, variables, check_token):
         return self.graphql(variables=variables,
