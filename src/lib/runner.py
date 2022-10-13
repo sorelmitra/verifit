@@ -152,7 +152,7 @@ class Runner(BasicRunner):
             use_token=use_token,
             token=self._token)
         if variables is not None:
-            self._create_vars(self.get_input_filename(), variables)
+            self._create_vars(self.get_input_filename(), variables, for_graphql=True)
         command = gql_tool.prepare_query_and_command()
 
         try:
@@ -230,10 +230,11 @@ class Runner(BasicRunner):
         if not use_expected_output:
             os.unlink(output_filename)
 
-    def _create_vars(self, input_filename, variables):
+    def _create_vars(self, input_filename, variables, for_graphql=False):
         filename_no_ext, _ = os.path.splitext(input_filename)
-        vars_filename = f"{filename_no_ext}.vars.json"
-        vars_template_filename = f"{filename_no_ext}.vars.template.json"
+        vars_ext = ".vars" if for_graphql else ""
+        vars_filename = f"{filename_no_ext}{vars_ext}.json"
+        vars_template_filename = f"{filename_no_ext}{vars_ext}.template.json"
         with open(vars_template_filename) as f_vars_template:
             graphql_vars = f_vars_template.read()
             for key, value in variables.items():
