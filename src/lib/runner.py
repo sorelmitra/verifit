@@ -232,7 +232,11 @@ class Runner(BasicRunner):
 
     def _create_vars(self, input_filename, variables, for_graphql=False):
         filename_no_ext, _ = os.path.splitext(input_filename)
-        vars_ext = ".vars" if for_graphql else ""
+        if for_graphql:
+            filename_no_ext = GraphQLTool.strip_input_suffix(filename_no_ext)
+            vars_ext = ".vars"
+        else:
+            vars_ext = ""
         vars_filename = f"{filename_no_ext}{vars_ext}.json"
         vars_template_filename = f"{filename_no_ext}{vars_ext}.template.json"
         with open(vars_template_filename) as f_vars_template:

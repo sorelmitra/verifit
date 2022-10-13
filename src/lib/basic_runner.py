@@ -16,7 +16,7 @@ class BasicRunner(RelativePath):
         self._results = None
 
     def get_input_filename(self, offset=0):
-        return self._get_filename(offset=offset)
+        return self._get_filename(suffix='.input', offset=offset)
 
     def get_output_filename(self, offset=0):
         return self._get_filename(suffix='-answer', offset=offset)

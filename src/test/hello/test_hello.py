@@ -3,6 +3,7 @@ import os
 import pytest
 
 from config_tool import Config
+from graphql_tool import GraphQLTool
 from runner import runner
 
 
@@ -18,6 +19,7 @@ def test_hello():
 def test_hello_delayed_1():
     _, filename = os.path.split(runner.get_input_filename())
     name, _ = os.path.splitext(filename)
+    name = GraphQLTool.strip_input_suffix(name)
     Config.value[f'{name}_started'] = True
     Config.value[f'{name}_expected'] = name
     Config.value[f'{name}_actual'] = name
@@ -31,6 +33,7 @@ def test_hello_delayed_1():
 def test_hello_delayed_2():
     _, filename = os.path.split(runner.get_input_filename())
     name, _ = os.path.splitext(filename)
+    name = GraphQLTool.strip_input_suffix(name)
     Config.value[f'{name}_started'] = True
     Config.value[f'{name}_expected'] = 'one two three'
     Config.value[f'{name}_actual'] = 'one three four'
@@ -45,6 +48,7 @@ def test_hello_delayed_2():
 def test_hello_delayed_3():
     _, filename = os.path.split(runner.get_input_filename())
     name, _ = os.path.splitext(filename)
+    name = GraphQLTool.strip_input_suffix(name)
     Config.value[f'{name}_started'] = True
     Config.value[f'{name}_expected'] = """
     abc

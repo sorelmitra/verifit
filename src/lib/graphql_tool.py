@@ -1,5 +1,6 @@
 import json
 import os
+import re
 
 from config_tool import Config
 
@@ -21,7 +22,7 @@ class GraphQLTool:
             self._server = server_public
             if self._server is None:
                 self._server = Config.value["GRAPHQL_SERVER_PUBLIC"]
-        
+
         self._filename_graphql_opname = input_filename
         self._fill_in_filenames()
         self._use_token = use_token
@@ -53,10 +54,16 @@ class GraphQLTool:
 
     def _fill_in_filenames(self):
         filename_no_ext, _ = os.path.splitext(os.path.basename(self._filename_graphql_opname))
+        filename_no_ext = self.strip_input_suffix(filename_no_ext)
         self._filename_graphql_query = self._opname_path(f'{filename_no_ext}.graphql')
         self._filename_graphql_variables = self._opname_path(f'{filename_no_ext}.vars.json')
         self._filename_graphql_request = self._opname_path(f'{filename_no_ext}.req.json')
         self._filename_graphql_response = self._opname_path(f'{filename_no_ext}-answer.json')
+
+    @staticmethod
+    def strip_input_suffix(filename_no_ext):
+        filename_no_ext = re.sub(r"\.input", "", filename_no_ext)
+        return filename_no_ext
 
     def _prepare_graphql_query(self):
         self.LOG(
