@@ -59,7 +59,7 @@ Writing a test is as easy as:
             assert actual == expected
 
 
-2. Create a data file with the same name as the test function, `test_hello.json`:
+2. Create a data file with the same name as the test function, `test_hello.input.json`:
 
         {
           "hello": "world"
@@ -101,7 +101,7 @@ We will be testing a publicly available dummy REST server. It is basically as si
             assert actual == expected
 
 
-3. Create a data file, `test_placeholder.json`, like this:
+3. Create a data file, `test_placeholder.input.json`, like this:
 
         {
             "title": "foo",
@@ -163,7 +163,7 @@ There's only one object you care about: `runner`.  It exposes several _functions
 
 Whenever the input or output files are used, their names are inferred from the test function name, of the form `<test_func><SUFFIX>`, where `SUFFIX` can be:
 
-- `.json`: Input file (just the extension).  For GraphQL, this is the operation name
+- `.input.json`: Input file.  For GraphQL, this is the operation name
 - `.graphql`: GraphQL query (where applicable)
 - `.vars.json`: GraphQL variables (where applicable)
 - `.vars.template.json`: GraphQL variables with placeholders of the form `${ID}` (where applicable)
