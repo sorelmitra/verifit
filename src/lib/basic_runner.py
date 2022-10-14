@@ -27,9 +27,9 @@ class BasicRunner(RelativePath):
     def get_filename_with_suffix(self, suffix, offset=0):
         return self._get_filename(suffix=suffix, offset=offset)
 
-    def get_test_name(self, offset=None):
-        the_offset = 2 if offset is None else offset
-        _, file = os.path.split(self.get_input_filename(offset=the_offset))
+    def get_test_name(self, extra_offset=0):
+        offset = 2 + extra_offset
+        _, file = os.path.split(self.get_input_filename(offset=offset))
         name_part_input, _ = os.path.splitext(file)
         name_part, _ = os.path.splitext(name_part_input)
         return name_part
@@ -67,22 +67,31 @@ class BasicRunner(RelativePath):
                                 sort=sort)
         return self._results.get_and_update()
 
-    def did_it_pass(self, expected, actual, name=None):
+    def did_it_pass(self, expected, actual, name=None, expect_failure=False):
         class bcolors:
             FAIL = '\033[91m'
+            OK = '\033[92m'
             ENDC = '\033[0m'
-
-        if actual == expected:
-            return True
 
         if name is None:
             name = self.get_test_name()
 
+        if actual == expected:
+            if expect_failure:
+                print(f"\n{bcolors.FAIL}{name} FAILED:{bcolors.ENDC}", file=sys.stderr)
+                print(f"\n{bcolors.FAIL}Expected different values but got the same:{bcolors.ENDC}", file=sys.stderr)
+                print(f"\n{bcolors.FAIL}{expected}{bcolors.ENDC}", file=sys.stderr)
+                return False
+            return True
+
         d = difflib.Differ()
-        print(f"\n{bcolors.FAIL}{name} FAILED:{bcolors.ENDC}", file=sys.stderr)
-        diff = d.compare(expected.split('\n'), actual.split('\n'))
-        [print(f"{bcolors.FAIL}{x}{bcolors.ENDC}", file=sys.stderr) for x in diff]
-        return False
+        if expect_failure:
+            return True
+        else:
+            print(f"\n{bcolors.FAIL}{name} FAILED:{bcolors.ENDC}", file=sys.stderr)
+            diff = d.compare(expected.split('\n'), actual.split('\n'))
+            [print(f"{bcolors.FAIL}{x}{bcolors.ENDC}", file=sys.stderr) for x in diff]
+            return False
 
     def assert_one_passed(self, names):
         passed = False
