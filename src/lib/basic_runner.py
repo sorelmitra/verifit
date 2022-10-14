@@ -27,6 +27,13 @@ class BasicRunner(RelativePath):
     def get_filename_with_suffix(self, suffix, offset=0):
         return self._get_filename(suffix=suffix, offset=offset)
 
+    def get_test_name(self, offset=None):
+        the_offset = 2 if offset is None else offset
+        _, file = os.path.split(self.get_input_filename(offset=the_offset))
+        name_part_input, _ = os.path.splitext(file)
+        name_part, _ = os.path.splitext(name_part_input)
+        return name_part
+
     def run(self, command=None, func=None,
             update_snapshot=False,
             strip_regex=None, strip_keys=None, strip_key_values_regex=None,
@@ -60,8 +67,7 @@ class BasicRunner(RelativePath):
                                 sort=sort)
         return self._results.get_and_update()
 
-    @staticmethod
-    def did_it_pass(name, expected, actual):
+    def did_it_pass(self, expected, actual, name=None):
         class bcolors:
             FAIL = '\033[91m'
             ENDC = '\033[0m'
@@ -69,14 +75,16 @@ class BasicRunner(RelativePath):
         if actual == expected:
             return True
 
+        if name is None:
+            name = self.get_test_name()
+
         d = difflib.Differ()
         print(f"\n{bcolors.FAIL}{name} FAILED:{bcolors.ENDC}", file=sys.stderr)
         diff = d.compare(expected.split('\n'), actual.split('\n'))
         [print(f"{bcolors.FAIL}{x}{bcolors.ENDC}", file=sys.stderr) for x in diff]
         return False
 
-    @staticmethod
-    def assert_one_passed(names):
+    def assert_one_passed(self, names):
         passed = False
         has_misspelled_name = False
         print('Collected tests', CollectedTests.names)
@@ -85,13 +93,13 @@ class BasicRunner(RelativePath):
             if Config.value.get(f'{name}_started', False):
                 expected = Config.value.get(f'{name}_expected', '')
                 actual = Config.value.get(f'{name}_actual', '')
-                if not has_misspelled_name and BasicRunner.did_it_pass(f'{name}', expected, actual):
+                if not has_misspelled_name and self.did_it_pass(expected, actual, name=name):
                     passed = True
             elif not collected:
-                BasicRunner.did_it_pass(name,
-                                        f'(test was amongst the {count} collected ones)',
-                                        f'(test was NOT amongst the {count} collected ones)\n'
-                                        f'(did you misspell its name?)')
+                self.did_it_pass(f'(test was amongst the {count} collected ones)',
+                                 f'(test was NOT amongst the {count} collected ones)\n'
+                                 f'(did you misspell its name?)',
+                                 name=name)
                 passed = False
                 has_misspelled_name = True
         assert passed
