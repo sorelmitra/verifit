@@ -69,8 +69,8 @@ class BasicRunner(RelativePath):
 
     def did_it_pass(self, expected, actual, name=None, expect_failure=False):
         class bcolors:
-            FAIL = '\033[91m'
-            OK = '\033[92m'
+            FAIL = '\033[31m'
+            OK = '\033[32m'
             ENDC = '\033[0m'
 
         if name is None:
@@ -82,10 +82,12 @@ class BasicRunner(RelativePath):
                 print(f"\n{bcolors.FAIL}Expected different values but got the same:{bcolors.ENDC}", file=sys.stderr)
                 print(f"\n{bcolors.FAIL}{expected}{bcolors.ENDC}", file=sys.stderr)
                 return False
+            print(f"\n{bcolors.OK}{name} PASSED{bcolors.ENDC}", file=sys.stderr)
             return True
 
         d = difflib.Differ()
         if expect_failure:
+            print(f"\n{bcolors.OK}{name} PASSED{bcolors.ENDC}", file=sys.stderr)
             return True
         else:
             print(f"\n{bcolors.FAIL}{name} FAILED:{bcolors.ENDC}", file=sys.stderr)
