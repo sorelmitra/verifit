@@ -1,10 +1,11 @@
 import sys
 
-from lib.config import get_store_reader
+from lib.config import get_store_reader, get_store_reader_low_case
 
 sys.path.append("lib")
 
 get_env = get_store_reader()
+get_env_low_case = get_store_reader_low_case()
 
 
 def pytest_collection_finish():
@@ -12,4 +13,8 @@ def pytest_collection_finish():
     Called after collection of tests has finished.
     """
     env = get_env('ENV')
-    print(f"ENV={env}")
+    driver = get_env_low_case('DRIVER')
+    driver_show = ""
+    if driver is not None:
+        driver_show = f"DRIVER={driver}"
+    print(f"ENV={env} {driver_show}")
