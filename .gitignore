@@ -6,3 +6,7 @@ venv
 .vscode
 __pycache__
 .*-cache.json
+node_modules
+screenshots
+videos
+downloads
