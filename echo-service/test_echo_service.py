@@ -1,5 +1,5 @@
-from config import get_store_reader
-from web_sockets import ws_send_and_receive
+from lib.config import get_store_reader
+from lib.web_sockets import ws_send_and_receive
 
 get_env = get_store_reader()
 

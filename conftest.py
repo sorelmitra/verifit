@@ -1,8 +1,4 @@
-import sys
-
 from lib.config import get_store_reader, get_store_reader_low_case
-
-sys.path.append("lib")
 
 get_env = get_store_reader()
 get_env_low_case = get_store_reader_low_case()

@@ -40,21 +40,28 @@ done
 
 if [ -z "${environment}" ]; then usage_exit "Missing environment!"; fi
 
-filter_arg=""
-if [ -n "${filter}" ]; then
-  filter_arg=" and (${filter})"
-fi
-
 echo
 # shellcheck disable=SC2154
 echo "Running E2E tests groups in environment ${bold_on}${environment}${normal_text}"
 
-title " Post-Service Test Group "
-"${script_dir}"/post-service/run-post-service-tests.sh -e "${environment}" -f "${filter}"
-compute_suite_result
+ENV=dev pytest --collect-only ./post-service -k "${filter}" | grep 'no tests collected' >/dev/null
+res=$?
+if [ "${res}" -eq 0 ]; then
+  title " Post-Service Test Group "
+  # shellcheck disable=SC2154
+  echo "${yellow_on}SKIPPED${normal_text}"
+else
+  title " Post-Service Test Group "
+  "${script_dir}"/post-service/run-post-service-tests.sh -e "${environment}" -f "${filter}"
+  compute_suite_result
+fi
 
-title " Everything else Test Group "
-ENV=${environment} pytest . -k "not post-service${filter_arg}"
+title " Everything else Test Group"
+if [ -n "${filter}" ]; then
+  ENV=${environment} pytest echo-service -k "${filter}"
+else
+  ENV=${environment} pytest echo-service
+fi
 compute_suite_result
 
 end_time=$(date +%s)
