@@ -1,14 +1,15 @@
 import sys
 
-sys.path.append("./src/lib")
+from lib.config import get_store_reader
 
-from collected_tests import CollectedTests
+sys.path.append("lib")
+
+get_env = get_store_reader()
 
 
-def pytest_collection_finish(session):
+def pytest_collection_finish():
     """
     Called after collection of tests has finished.
     """
-    for item in session.items:
-        CollectedTests.names.append(item.originalname)
-
+    env = get_env('ENV')
+    print(f"ENV={env}")
