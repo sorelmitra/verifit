@@ -1,0 +1,6 @@
+PyJWT
+pytest
+python-dotenv
+python_graphql_client
+requests
+websockets

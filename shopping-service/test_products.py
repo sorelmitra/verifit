@@ -1,12 +1,14 @@
 import requests
 
 from lib.config import get_store_reader
-from lib.login import get_bearer_authorization_header_value
+from lib.login import get_bearer_authorization_header_value, login_from_cache
+from user import get_main_login_user
 
 get_env = get_store_reader()
 
 
 def test_products():
+    login_from_cache(get_main_login_user())
     url = f"{get_env('SHOPPING_SERVICE_URL')}/products/1"
     print('Getting product 1 from shopping server')
     response = requests.get(

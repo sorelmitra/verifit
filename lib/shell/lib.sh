@@ -8,6 +8,8 @@ yellow_on="\033[33m"
 # shellcheck disable=SC2034
 color_off="\033[0m"
 normal_text=$(tput sgr0)
+
+
 lines_before_count=5
 separator_lines_count=2
 lines_after_count=2
