@@ -43,7 +43,9 @@ This repo consists of the actual library, which is in `lib/`, some sample shell 
 
 We have a bunch of suites that you can inspire from.  Each suite tests an imaginary service, which is either an online dummy one, either a dummy shell command. 
 
-1. **Post-Service**.  This one can post to a particular server, which can be either GraphQL or REST.  The test itself uses the driver mechanism in order to determine which method to use when posting.  Each driver connects to the server it can talk to, and makes sure the returned data has the same format in order for the test to function.
+1. **Post-Service**.  This one can post to a particular server via a driver.  Each driver connects to the server it can talk to, and makes sure the returned data has the same format in order for the test to function.  We have the following drivers:
+   - `post-service-1` that connects to a REST API.
+   - `post-service-2` that connects to a GraphQL API.
 2. **Echo-Service**.  It sends a message to a Web-Sockets server and gives back the response.  In our case, the dummy WSS server echoes back whatever we're sending, so the test verifies this.
 3. **Shopping-Service**.  This test shows login, accessing an authorized endpoint, and caching some values - in this case the access token for a particular user.  It logs in from cache.  If no cache is found, it will log in normally and cache the token.
 4. **Date-Service**.  It runs the shell command `date` with some arguments, and verifies the resulting output.
