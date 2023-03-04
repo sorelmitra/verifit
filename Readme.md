@@ -47,7 +47,12 @@ We have a bunch of suites that you can inspire from.  Each suite tests an imagin
    - `post-service-1` that connects to a REST API.
    - `post-service-2` that connects to a GraphQL API.
 2. **Echo-Service**.  It sends a message to a Web-Sockets server and gives back the response.  In our case, the dummy WSS server echoes back whatever we're sending, so the test verifies this.
-3. **Shopping-Service**.  This test shows login, accessing an authorized endpoint, and caching some values - in this case the access token for a particular user.  It logs in from cache.  If no cache is found, it will log in normally and cache the token.
+3. **Shopping-Service**.  This test shows multiple features:
+   - Login and get an access token.  (`test_login.py`.)
+   - Accessing an authorized endpoint with an access token.  (`test_products.py`.)
+   - Caching some values, in this case the access token for a particular user.  (`test_login.py`.)
+   - Log in from cache, which means reusing the cached access token if it's not close to expiration date.  If no suitable token is found, log in again.  (`test_products.py`.)
+   - BDD using `pytest-bdd` and Gherkin.  Implements a similar test to `test_products.py`, but this time with a Gherkin feature file and `@given`, `@when`, `@then`.  Showcases matching a Gherkin declaration with regular expressions.  (`test_carts.py`.)
 4. **Date-Service**.  It runs the shell command `date` with some arguments, and verifies the resulting output.
 5. **Kitchen-Service**.  Web UI test using Cypress.IO and their kitchen sink sample page.  It is called from a Python test that runs Cypress via `subprocess`.
 
