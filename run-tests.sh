@@ -58,9 +58,9 @@ fi
 
 title " Everything else Test Group"
 if [ -n "${filter}" ]; then
-  DRIVER="shopping-service" ENV=${environment} pytest echo-service shopping-service date-service -k "${filter}"
+  DRIVER="shopping-service" ENV=${environment} pytest echo-service shopping-service date-service kitchen-service -k "${filter}"
 else
-  DRIVER="shopping-service" ENV=${environment} pytest echo-service shopping-service date-service
+  DRIVER="shopping-service" ENV=${environment} pytest echo-service shopping-service date-service kitchen-service
 fi
 compute_suite_result
 

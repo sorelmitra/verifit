@@ -37,6 +37,7 @@ This repo consists of the actual library, which is in `lib/`, some sample shell 
 - Install Python 3.6 or higher.
 - Add library to `PYTHONPATH`: `export PYTHONPATH=<verifit repo>/lib:$PYTHONPATH`.
 - Install the requirements from `requirements.txt`.
+- Go to `kitchen-service/ui` and run `yarn install`.
 
 ## Inspect the Sample Tests 
 
@@ -46,6 +47,7 @@ We have a bunch of suites that you can inspire from.  Each suite tests an imagin
 2. **Echo-Service**.  It sends a message to a Web-Sockets server and gives back the response.  In our case, the dummy WSS server echoes back whatever we're sending, so the test verifies this.
 3. **Shopping-Service**.  This test shows login, accessing an authorized endpoint, and caching some values - in this case the access token for a particular user.  It logs in from cache.  If no cache is found, it will log in normally and cache the token.
 4. **Date-Service**.  It runs the shell command `date` with some arguments, and verifies the resulting output.
+5. **Kitchen-Service**.  Web UI test using Cypress.IO and their kitchen sink sample page.  It is called from a Python test that runs Cypress via `subprocess`.
 
 ## Start Testing
 
