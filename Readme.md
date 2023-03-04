@@ -14,6 +14,14 @@ Usually you can't test a system 100% automatically. But, if you manage to cover 
 
 Also, on small projects or where you're time constrained, having an automatic system testing framework that's easy to put to use on a daily basis is of great help.
 
+There are multiple ways of writing automated tests.  One particular way I favor is **black box testing**, in which you treat your system as a black box, and *never check its internals*.  I find it has quite a few advantages:
+
+- Easy to put in place.  You just hit your system in the same way its clients would.  No need to write code that checks databases, Kafka, or who knows what.
+- Can serve as acceptance testing.  You can put up compound scenarios.
+- It's resistant to system implementation changes.
+
+While I do favor black-box testing, this library is suitable for any type of testing you wish.
+
 
 
 # Overview
@@ -56,9 +64,15 @@ We have a bunch of suites that you can inspire from.  Each suite tests an imagin
 4. **Date-Service**.  It runs the shell command `date` with some arguments, and verifies the resulting output.
 5. **Kitchen-Service**.  Web UI test using Cypress.IO and their kitchen sink sample page.  It is called from a Python test that runs Cypress via `subprocess`.
 
-## Start Testing
+## Write Some Tests
 
 You can now start writing tests!  (Perhaps by copying one of the samples.)
+
+## Run Tests
+
+Run `./run-tests.sh -e dev` to run all tests.
+
+To only run tests related to shopping: `./run-tests.sh -e dev -f 'shopping'`.
 
 
 

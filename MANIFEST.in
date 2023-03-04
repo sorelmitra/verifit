@@ -1,0 +1,13 @@
+recursive-include kitchen-service/ui_test
+recursive-exclude kitchen-service/ui_test/cypress/downloads
+recursive-exclude kitchen-service/ui_test/cypress/screenshots
+recursive-exclude kitchen-service/ui_test/cypress/videos
+recursive-exclude kitchen-service/ui_test/node_modules
+
+recursive-include lib/shell
+
+include shopping-service/*.feature
+include post-service/*.sh
+recursive-include post-service/lib/local/shell
+
+include *.sh
