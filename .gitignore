@@ -1,9 +1,8 @@
 **/*-answer.*
 *.swp
-**/mobiledemo/input
-**/mobiledemo/results
 .DS_Store
 venv
 .idea
 .vscode
 __pycache__
+.*-cache.json
