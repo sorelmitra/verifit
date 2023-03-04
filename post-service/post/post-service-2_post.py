@@ -5,7 +5,7 @@ from lib.config import get_store_reader
 get_env = get_store_reader()
 
 
-def execute(variables):
+def execute(post_id):
     client = GraphqlClient(endpoint=get_env('POST_SERVICE_2_URL'))
     query = """
         query GET_POST($id: ID!) {
@@ -16,6 +16,9 @@ def execute(variables):
           }
         }
     """
+    variables = {
+      "id": post_id
+    }
     print('Posting via Post-Service-2', variables)
     response = client.execute(query, variables)
     data = response.get('data', None)
