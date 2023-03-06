@@ -2,8 +2,8 @@ import pytest
 import requests
 from pytest_bdd import given, parsers, scenario, when, then
 
-from lib.config import get_store_reader, get_store_writer
-from lib.login import get_bearer_authorization_header_value, login_from_cache
+from src.lib.config import get_store_reader, get_store_writer
+from src.lib.login import get_bearer_authorization_header_value, login_from_cache
 from user import get_main_login_user
 
 get_env = get_store_reader()

@@ -5,6 +5,7 @@ venv
 .idea
 .vscode
 __pycache__
+.pytest_cache
 .*-cache.json
 node_modules
 screenshots

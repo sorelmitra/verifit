@@ -1,6 +1,6 @@
 import json
 
-from lib.config import get_store_reader
+from src.lib.config import get_store_reader
 
 filename = f".{get_store_reader()('ENV')}-cache.json"
 

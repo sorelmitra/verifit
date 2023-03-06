@@ -3,7 +3,7 @@ import json
 
 import websockets
 
-from lib.config import get_store_reader
+from src.lib.config import get_store_reader
 
 get_env = get_store_reader()
 

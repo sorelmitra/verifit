@@ -2,7 +2,7 @@ import os
 
 from dotenv import dotenv_values
 
-from lib.memoize import create_memoizer
+from src.lib.memoize import create_memoizer
 
 
 def config():
