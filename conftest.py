@@ -1,48 +1,13 @@
-import importlib
-
 import pytest
 
-from src.lib.config import get_store_reader
-
-get_env = get_store_reader()
+from src.lib.driver import get_driver_params, get_driver
 
 
-def get_marker(request):
-    def with_value(value):
-        marker = request.node.get_closest_marker(value)
-        if marker is None:
-            return None
-        return marker.args[0]
-    return with_value
-
-
-def get_post_driver_params():
-    requested_drivers = get_env('POST_DRIVER')
-    if requested_drivers is not None:
-        return requested_drivers.split(',')
-    return ['post-service-1', 'post-service-2']
-
-
-@pytest.fixture(params=get_post_driver_params())
+@pytest.fixture(params=get_driver_params('POST_DRIVER', ['post-service-1', 'post-service-2']))
 def post_driver(request):
-    driver_to_skip = get_marker(request)('skip_driver')
-    if driver_to_skip == request.param:
-        pytest.skip('skipped for this driver: {}'.format(driver_to_skip))
-
-    functionality = get_marker(request)('driver_functionality')
-    module = importlib.import_module(f"{request.param}_{functionality}")
-    return module.execute
+    return get_driver(request)
 
 
-def get_shopping_driver_params():
-    requested_drivers = get_env('SHOPPING_DRIVER')
-    if requested_drivers is not None:
-        return requested_drivers.split(',')
-    return ['shopping-service']
-
-
-@pytest.fixture(params=get_shopping_driver_params())
+@pytest.fixture(params=get_driver_params('SHOPPING_DRIVER', ['shopping-service']))
 def shopping_driver(request):
-    functionality = get_marker(request)('driver_functionality')
-    module = importlib.import_module(f"{request.param}_{functionality}")
-    return module.execute
+    return get_driver(request)
