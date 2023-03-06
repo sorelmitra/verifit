@@ -138,12 +138,18 @@ We have a bunch of test suites that you can inspire from.  Each suite tests an i
 4. **Date-Service**.  It runs the shell command `date` with some arguments, and verifies the resulting output.
 5. **Kitchen-Service**.  Web UI test using Cypress.IO and their kitchen sink sample page.  It is called from a Python test that runs Cypress via `subprocess`.
 
-To run the sample test suites included with this project, here are some example commands:
+To run all sample test suites included with this project, do this:
 
-- Run `pytest tests/` to run all tests.
-- Run only tests that are related to posts and shopping: `pytest tests/post-service tests/shopping-service`.
-- Run the posts tests only with the first driver: `POST_DRIVER='post-service-1' pytest -vv tests/post-service`.
-- Run the posts tests with all drivers explicitly: `POST_DRIVER='post-service-1,post-service-2' pytest -vv tests/post-service`.
+```shell
+cd tests
+pytest .
+```
+
+More example commands:
+
+- Run only tests that are related to posts and shopping: `pytest post-service shopping-service`.
+- Run the posts tests only with the first driver: `POST_DRIVER='post-service-1' pytest post-service`.
+- Run the posts tests with all drivers explicitly: `POST_DRIVER='post-service-1,post-service-2' pytest post-service`.
    - **Note**: In our case, this is the same as not specifying `POST_DRIVER` at all.  _However_, this is a useful pattern in case you have N>2 drivers and want to run just a few of them.
 
 ## 4. Write Some Tests
