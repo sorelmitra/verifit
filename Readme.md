@@ -1,6 +1,6 @@
 # About
 
-This is a Python library that simplifies setting up and using automatic system testing for several types of projects.
+This is a Python library aimed at developers, that simplifies setting up and using automatic system testing for several types of projects.
 
 I've named it `verifit` as a contraction of `Verify It!`, i.e. "Make sure your system works fine!"
 
@@ -8,19 +8,33 @@ I've named it `verifit` as a contraction of `Verify It!`, i.e. "Make sure your s
 
 # Introduction
 
-System testing (or application-level testing) is a must for every project.  Even if you have a dedicated QA team, automatic system testing is a very valuable tool for making sure your product works as expected.
+## Why Developer-Based Automatic System Testing?
 
-Usually you can't test a system 100% automatically. But, if you manage to cover the functionality (and perhaps some non-functional requirements, such as performance and high-availability - depending on the nature of the project), this will be a big help as the project builds up, and the risk of breaking something increases.
+Automatic system (or application-level) testing done by developers is a must for every project.  Even if you have a dedicated QA team, automatic system testing is a very valuable tool for making sure your product works as expected:
+
+- It allows developers to be very confident of the quality of the products that they ship.
+- Sometimes you can't test a system 100% automatically. But, if you manage to cover the functionality (and perhaps some non-functional requirements, such as performance and high-availability - depending on the nature of the project), this will be a big help as the project builds up, and the risk of breaking something increases.
+- It makes bug investigation easier - if you know the case covered by the bug passes in your automated tests, then the source must be elsewhere, such as misconfiguration or wrong parameter.
+- It makes QA team's life easier by helping them design their tests.
+
+## Why This Libray?
+
+For the above to work, though, the developers must be maintaining their tests along with the code base, or even better, do TDD.
+
+This library aims to make a developer's life easier by leveraging the already very friendly PyTest tool, and building upon it with a handful of commonly used options, such as environment variables or making authorized HTTPS requests.
 
 Also, on small projects or where you're time constrained, having an automatic system testing framework that's easy to put to use on a daily basis is of great help.
 
-There are multiple ways of writing automated tests.  One particular way I favor is **black box testing**, in which you treat your system as a black box, and *never check its internals*.  I find it has quite a few advantages:
+## Side Note: Black Box Testing
+
+There are multiple ways of writing automated tests, and this library is not tied to any particular methodology.
+
+However, one particular testing methodology I favor is **black box testing**, in which you treat your system as a black box, and *never check its internals*.  I find it has quite a few advantages, and I thought I'd list some of them here:
 
 - Easy to put in place.  You just hit your system in the same way its clients would.  No need to write code that checks databases, Kafka, or who knows what.
 - Can serve as acceptance testing.  You can put up compound scenarios.
 - It's resistant to system implementation changes.
 
-While I do favor black-box testing, this library is suitable for any type of testing you wish.
 
 
 
@@ -51,9 +65,14 @@ This repo consists of the actual library, which is in `lib/`, some sample shell 
 
 **Note 1**: You can skip this section if you're not going to use drivers in your test.
 
-**Note 2**: You can see the pattern explained below applied in the `./conftest.py`, for the sample tests.
+**Note 2**: You can see the pattern explained below applied for the sample tests in  `tests/conftest.py`.
 
-For each driver type you're going to need, add the following code into your `conftest.py` file:
+Assume you have two services, `my-service`, and `my-second-service`, and each one of them has different needs for a driver:
+
+- `my-service` has a REST, GraphQL, and UI interface, and you want to test them all, ideally without duplicating test cases.  The use cases for all interfaces are similar and you want to reuse your test cases.
+- `my-second-service` has multiple versions, and most of your tests apply to all of them, so again  you want to reuse them.
+
+To achieve this with this library, add the following code into your `conftest.py` file:
 
 ```python
 import pytest
@@ -71,6 +90,8 @@ def my_second_driver(request):
     return get_driver(request)
 ```
 
+(In the rest of this section, we focus on `my-service`.  The same pattern applies for `my-second-service`.)
+
 Then in your test file, use the driver like this:
 
 ```python
@@ -80,13 +101,13 @@ def test_stuff(my_driver):
    my_driver(data)
 ```
 
-(Similarly for the `my_second_driver` driver.)
-
-Now the framework will make sure to call `do_stuff` for each driver that is specified in the environment variable `MY_DRIVER`, or for all of them declared in the fixture.  Specifically, it will look for files named like this, in the same folder as your test file:
+Now the framework will make sure to call `do_stuff` for each driver that is specified in the environment variable `MY_DRIVER`, or by default for the list declared in the fixture: `['my-service-rest', 'my-service-graphql', 'my-service-ui']`.  Specifically, it will look for files named like this, in the same folder as your test file:
 
 - `my-service-rest-do_stuff.py`: Do stuff via REST.
 - `my-service-graphql-do_stuff.py`: Do stuff via GraphQL.
 - `my-service-ui-do_stuff.py`: Do stuff via UI.
+
+If you need to specify `MY_DRIVER`, do it like this: `MY_DRIVER='my-service-rest,my-service-ui' pytest my-tests`.  This will run your tests for only the REST and UI drivers.
 
 In case a particular test does not make sense for a particular driver, mark it as such with:
 
@@ -98,11 +119,11 @@ def test_another_stuff(my_driver):
    my_driver(data)
 ```
 
-Thus, `test_another_stuff` will be skipped for driver `my-driver-ui`.
+Now the framework will skip `test_another_stuff` if the driver is for UI, and instruct PyTest to display an appropriate message.
 
 ## 3. Inspire from the Sample Tests 
 
-We have a bunch of suites that you can inspire from.  Each suite tests an imaginary service, which is either an online dummy one, either a dummy shell command. 
+We have a bunch of test suites that you can inspire from.  Each suite tests an imaginary service, which is either an online dummy one, either a dummy shell command. 
 
 1. **Post-Service**.  This one can post to a particular server via a driver.  Each driver connects to the server it can talk to, and makes sure the returned data has the same format in order for the test to function.  We have the following drivers:
    - `post-service-1` that connects to a REST API.
@@ -117,21 +138,36 @@ We have a bunch of suites that you can inspire from.  Each suite tests an imagin
 4. **Date-Service**.  It runs the shell command `date` with some arguments, and verifies the resulting output.
 5. **Kitchen-Service**.  Web UI test using Cypress.IO and their kitchen sink sample page.  It is called from a Python test that runs Cypress via `subprocess`.
 
-## 4. Write Some Tests
-
-You can now start writing tests!  (Perhaps by copying one of the samples.)
-
-## Run Tests
-
-Run your tests as usual, by invoking `pytest`.
-
-To run the sample tests included with this project, here're some example commands:
+To run the sample test suites included with this project, here are some example commands:
 
 - Run `pytest tests/` to run all tests.
 - Run only tests that are related to posts and shopping: `pytest tests/post-service tests/shopping-service`.
 - Run the posts tests only with the first driver: `POST_DRIVER='post-service-1' pytest -vv tests/post-service`.
 - Run the posts tests with all drivers explicitly: `POST_DRIVER='post-service-1,post-service-2' pytest -vv tests/post-service`.
    - **Note**: In our case, this is the same as not specifying `POST_DRIVER` at all.  _However_, this is a useful pattern in case you have N>2 drivers and want to run just a few of them.
+
+## 4. Write Some Tests
+
+You can now start writing tests!  (Perhaps by copying one of the samples.)
+
+## 5. Run Tests
+
+Run your tests as usual, by invoking `pytest`, specifying the environment name, and driver, if that's the case, and any other environment variables you might need in your tests.
+
+E.g., assuming you have:
+
+- The drivers presented in the section on [preparing drivers](#2-prepare-a-conftestpy-file-with-drivers) above.
+- The environment `sandbox`.
+- A tenant-based app.
+- The tenant `dev-test` set up for testing.
+- All your tests in the `tests/` folder,
+
+then you could run your tests for REST and UI like this:
+
+```shell
+ENV=sandbox tenant=dev-test MY_DRIVER='my-service-rest,my-service-ui' pytest tests
+```
+
 
 
 # Reference
