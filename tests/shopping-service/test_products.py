@@ -1,8 +1,8 @@
 import pytest
 import requests
 
-from src.lib.config import get_store_reader
-from src.lib.login import get_bearer_authorization_header_value, login_from_cache
+from verifit.config import get_store_reader
+from verifit.login import get_bearer_authorization_header_value, login_from_cache
 from user import get_main_login_user
 
 get_env = get_store_reader()

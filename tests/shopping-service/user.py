@@ -1,5 +1,5 @@
-from src.lib.config import get_store_reader
-from src.lib.login import create_login_user
+from verifit.config import get_store_reader
+from verifit.login import create_login_user
 
 get_env = get_store_reader()
 

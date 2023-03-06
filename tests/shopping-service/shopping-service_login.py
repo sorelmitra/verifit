@@ -2,8 +2,8 @@ import json
 
 import requests
 
-from src.lib.config import get_store_reader
-from src.lib.login import get_login_user_name, get_login_user_password
+from verifit.config import get_store_reader
+from verifit.login import get_login_user_name, get_login_user_password
 
 get_env = get_store_reader()
 

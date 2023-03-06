@@ -2,7 +2,7 @@ import json
 
 import requests
 
-from src.lib.config import get_store_reader
+from verifit.config import get_store_reader
 
 get_env = get_store_reader()
 

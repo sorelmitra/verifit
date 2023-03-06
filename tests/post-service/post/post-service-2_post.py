@@ -1,6 +1,6 @@
 from python_graphql_client import GraphqlClient
 
-from src.lib.config import get_store_reader
+from verifit.config import get_store_reader
 
 get_env = get_store_reader()
 

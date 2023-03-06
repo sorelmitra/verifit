@@ -2,8 +2,8 @@ from datetime import datetime
 
 import pytest
 
-from src.lib.date_and_time import date_diff_in_minutes
-from src.lib.login import login, get_expiry_date
+from verifit.date_and_time import date_diff_in_minutes
+from verifit.login import login, get_expiry_date
 from user import get_main_login_user
 
 

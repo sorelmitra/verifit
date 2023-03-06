@@ -1,6 +1,6 @@
 import pytest
 
-from src.lib.driver import get_driver_params, get_driver
+from verifit.driver import get_driver_params, get_driver
 
 
 @pytest.fixture(params=get_driver_params('POST_DRIVER', ['post-service-1', 'post-service-2']))
