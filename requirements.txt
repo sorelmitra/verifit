@@ -5,3 +5,8 @@ python-dotenv
 python_graphql_client
 requests
 websockets
+
+[dev]
+build
+twine
+check-manifest
