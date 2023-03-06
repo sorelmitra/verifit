@@ -6,7 +6,8 @@ from lib.memoize import create_memoizer
 
 
 def config():
-    environment_name = os.environ['ENV']
+    environment_name = os.environ.get('ENV', 'dev')
+    os.environ['ENV'] = environment_name
     values = {
         **dotenv_values(f".{environment_name}.env"),
         **os.environ
