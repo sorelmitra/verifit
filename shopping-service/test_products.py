@@ -1,3 +1,4 @@
+import pytest
 import requests
 
 from lib.config import get_store_reader
@@ -7,8 +8,9 @@ from user import get_main_login_user
 get_env = get_store_reader()
 
 
-def test_products():
-    login_from_cache(get_main_login_user())
+@pytest.mark.driver_functionality('login')
+def test_products(shopping_driver):
+    login_from_cache(get_main_login_user())(shopping_driver)
     url = f"{get_env('SHOPPING_SERVICE_URL')}/products/1"
     print('Getting product 1 from shopping server')
     response = requests.get(

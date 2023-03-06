@@ -1,7 +1,6 @@
 from lib import cache
 from lib import config
 from lib import date_and_time
-from lib import driver
 from lib import generate
 from lib import iam_token
 from lib import login

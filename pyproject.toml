@@ -1,3 +1,9 @@
+[tool.pytest.ini_options]
+markers = [
+    "driver_functionality: specifies functionality for driver to load",
+    "skip_driver: specifies that this test should be skipped if driver has particular value",
+]
+
 [build-system]
 requires = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
@@ -5,6 +11,9 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 package-dir = { 'verifit' = 'lib' }
 packages = ['verifit']
+
+[tool.check-manifest]
+ignore = [".pytest_cache/*", "node_modules/**/*"]
 
 [project]
 name = "verifit"

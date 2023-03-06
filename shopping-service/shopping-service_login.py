@@ -2,11 +2,10 @@ import json
 
 import requests
 
-from lib.config import get_store_reader, get_store_reader_low_case
+from lib.config import get_store_reader
 from lib.login import get_login_user_name, get_login_user_password
 
 get_env = get_store_reader()
-get_env_low_case = get_store_reader_low_case()
 
 
 def execute(user):

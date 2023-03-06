@@ -26,18 +26,6 @@ def get_store_reader():
     return get_env
 
 
-def get_store_reader_low_case():
-    store = memoize()
-
-    def get_env(key):
-        value = store.get(key, None)
-        if value is None:
-            return value
-        return value.lower()
-
-    return get_env
-
-
 def get_store_writer():
     store = memoize()
 

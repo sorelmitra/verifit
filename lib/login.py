@@ -5,7 +5,6 @@ from requests.auth import AuthBase
 from lib.cache import cache_set, cache_get
 from lib.config import get_store_reader, get_store_writer
 from lib.date_and_time import date_diff_in_minutes
-from lib.driver import get_driver
 from lib.iam_token import decode_token, get_token_expiration_date
 
 get_env = get_store_reader()
@@ -73,16 +72,18 @@ def create_login_user():
 
 
 def login(user):
-    access_token = get_driver('login')(user)
-    decoded_token = decode_token(access_token)
-    token_expiry_date = get_token_expiration_date(decoded_token)
-    cache_set(get_login_user_name(user), {
-        'accessToken': access_token,
-        'expiryDate': token_expiry_date.isoformat()
-    })
-    login_data = create_login_data()(access_token)(token_expiry_date)
-    set_env(KEY_LOGIN_DATA)(login_data)
-    return login_data
+    def with_driver(login_driver):
+        access_token = login_driver(user)
+        decoded_token = decode_token(access_token)
+        token_expiry_date = get_token_expiration_date(decoded_token)
+        cache_set(get_login_user_name(user), {
+            'accessToken': access_token,
+            'expiryDate': token_expiry_date.isoformat()
+        })
+        login_data = create_login_data()(access_token)(token_expiry_date)
+        set_env(KEY_LOGIN_DATA)(login_data)
+        return login_data
+    return with_driver
 
 
 def get_login_values_from_cache(username):
@@ -100,11 +101,13 @@ def get_login_values_from_cache(username):
 
 
 def login_from_cache(user):
-    login_data = get_login_values_from_cache(get_login_user_name(user))
-    if login_data is None:
-        login_data = login(user)
-    set_env(KEY_LOGIN_DATA)(login_data)
-    return login_data
+    def with_driver(login_driver):
+        login_data = get_login_values_from_cache(get_login_user_name(user))
+        if login_data is None:
+            login_data = login(user)(login_driver)
+        set_env(KEY_LOGIN_DATA)(login_data)
+        return login_data
+    return with_driver
 
 
 def get_bearer_authorization_header_value():
