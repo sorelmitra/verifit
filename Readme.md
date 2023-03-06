@@ -52,18 +52,17 @@ Normally, if you're using PyTest and a few helper Python modules, you can test p
 This repo consists of the actual library, which is in `lib/`, some sample shell scripts, and sample tests from which you can inspire.
 
 
-# Quick Start
+# Quick Start with Writing Tests
 
 ## 1. Install Required Libraries
 
 - Install Python 3.6 or higher.
-- Add library to `PYTHONPATH`: `export PYTHONPATH=<verifit repo>/lib:$PYTHONPATH`.
-- Install the requirements from `requirements.txt`.
-- Go to `tests/kitchen-service/ui` and run `yarn install`.
+- Install PyTest.
+- Copy the [requirements from the sample tests](https://github.com/sorelmitra/verifit/blob/main/tests/requirements.txt) to your PyTest project and install them.  This will basically install the `verifit` library to its latest version.
 
 ## 2. Prepare a `conftest.py` File with Drivers
 
-**Note 1**: You can skip this section if you're not going to use drivers in your test.
+**Note 1**: You can skip this section if you're not going to use drivers in your tests.
 
 **Note 2**: You can see the pattern explained below applied for the sample tests in  `tests/conftest.py`.
 
@@ -142,6 +141,7 @@ To run all sample test suites included with this project, do this:
 
 ```shell
 cd tests
+pip install -r requirements.txt
 pytest .
 ```
 
@@ -195,3 +195,102 @@ Helpers:
 - `login.py`.  Functions to log in or log in from cache, and for building authorization values (one for REST, one for the Python GraphQL client.)
 - `memoize.py`.  Simple memoize pattern.
 - `web_sockets.py`.  Simplifies Web-Sockets testing by listening in background for received packages, and sending data.
+
+
+
+
+# Development
+
+## Library
+
+If you want to develop, build, and upload this library to PyPI, do this:
+
+First, set up a few things:
+
+- Install Python 3.6 or higher.
+- Install the requirements from `requirements.txt`.
+
+The lib code is in `src/verifit`.  Make sure to use proper `.` imports to avoid importing from the installed `verifit` library accidentally.
+
+Once your code changes are ready and documented (if need be), do the following to upload:
+
+1. Commit everything to GIT.
+
+2. Check Manifest: Run `check-manifest`.
+
+3. Increase the version in `pyproject.toml`:
+
+   ```toml
+   [project]
+   version = "1.0.6"
+   ```
+
+4. Increase the minimum version in `tests/requirements.txt`:
+
+   ```
+   verifit >= 1.0.6
+   ```
+
+5. Build package. Run:
+
+   ```shell
+   python -m build
+   ```
+
+6. Check build. Run:
+
+   ```shell
+   twine check dist/verifit-1.0.6*
+   ```
+
+7. Upload to Test.PyPI. Run:
+
+   ```shell
+   twine upload -r testpypi dist/verifit-1.0.6*
+   ```
+
+8. Install manually from Test.PyPI. Run:
+
+   ```shell
+   pip install -i https://test.pypi.org/simple verifit==1.0.6
+   ```
+
+   (First time it may fail, in this case, rerun the above command.)
+
+9. Run the sample tests:
+
+   ```shell
+   cd tests/ && pytest .
+   ```
+
+10. If everything goes well, upload to PyPI. Run:
+
+   ```shell
+   twine upload dist/verifit-1.0.6*
+   ```
+
+11. Install sample tests requirements. Run:
+
+   ```shell
+   cd tests/ && pip install -r requirements.txt
+   ```
+
+12. Run the sample tests again:
+
+   ```shell
+   cd tests/ && pytest .
+   ```
+
+If all went well, they should pass.  You can now push to GIT.
+
+## Sample Tests
+
+Setup:
+
+- Go to `tests/kitchen-service/ui` and run `yarn install`.
+- Install sample tests requirements. Run:
+
+   ```shell
+   cd tests/ && pip install -r requirements.txt
+   ```
+Change tests code, then make sure to test, document, & push your changes.
