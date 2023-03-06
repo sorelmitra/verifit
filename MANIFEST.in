@@ -1,8 +1,4 @@
 include *.env
 include *.py
 include *.txt
-recursive-include date-service *.py
-recursive-include echo-service *.py
-recursive-include kitchen-service *.py *.js *.json *.lock
-recursive-include post-service *.py
-recursive-include shopping-service *.py *.feature
+recursive-include tests *.py *.feature *.js *.json *.lock

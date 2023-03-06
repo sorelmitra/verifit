@@ -9,7 +9,7 @@ requires = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-package-dir = { 'verifit' = 'lib' }
+package-dir = { 'verifit' = 'src/lib' }
 packages = ['verifit']
 
 [tool.check-manifest]
@@ -44,3 +44,4 @@ dev = []
 
 [project.urls]
 Homepage = "https://github.com/sorelmitra/verifit"
+
