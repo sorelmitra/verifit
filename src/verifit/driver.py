@@ -2,7 +2,7 @@ import importlib
 
 import pytest
 
-from src.lib.config import get_store_reader
+from .config import get_store_reader
 
 get_env = get_store_reader()
 
