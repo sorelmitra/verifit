@@ -5,6 +5,7 @@ from requests.auth import AuthBase
 from .cache import cache_set, cache_get
 from .config import get_store_reader, get_store_writer
 from .date_and_time import date_diff_in_minutes
+from .driver import get_functionality_per_driver
 from .iam_token import decode_token, get_token_expiration_date
 
 get_env = get_store_reader()
@@ -73,9 +74,17 @@ def create_login_user():
     return with_username
 
 
+def get_login_driver(driver):
+    return get_functionality_per_driver(driver)('login')
+
+
+def get_main_login_user(driver):
+    return get_functionality_per_driver(driver)('get-main-login-user')
+
+
 def login(user):
-    def with_driver(login_driver):
-        access_token = login_driver(user)
+    def with_driver(driver):
+        access_token = get_login_driver(driver)(user)
         decoded_token = decode_token(access_token)
         token_expiry_date = get_token_expiration_date(decoded_token)
         cache_set(get_login_user_name(user), {
@@ -86,6 +95,14 @@ def login(user):
         set_env(KEY_LOGIN_DATA)(login_data)
         return login_data
     return with_driver
+
+
+def login_main_user(driver):
+    return login(get_main_login_user(driver)())(driver)
+
+
+def login_main_user_from_cache(driver):
+    return login_from_cache(get_main_login_user(driver)())(driver)
 
 
 def get_login_values_from_cache(username):
@@ -107,10 +124,10 @@ def get_login_values_from_cache(username):
 
 
 def login_from_cache(user):
-    def with_driver(login_driver):
+    def with_driver(driver):
         login_data = get_login_values_from_cache(get_login_user_name(user))
         if login_data is None:
-            login_data = login(user)(login_driver)
+            login_data = login(user)(driver)
         print(f"Caching login data <{login_data}>")
         set_env(KEY_LOGIN_DATA)(login_data)
         return login_data

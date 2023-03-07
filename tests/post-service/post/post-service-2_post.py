@@ -21,9 +21,9 @@ def execute(post_id):
     }
     print('Posting via Post-Service-2', variables)
     response = client.execute(query, variables)
+    print(response)
     data = response.get('data', None)
     assert data is not None
-    print(data)
     post = data.get('post')
     assert post is not None
     return post

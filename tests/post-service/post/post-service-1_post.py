@@ -23,8 +23,8 @@ def execute(post_id):
         },
     )
     data = response.json()
-    assert data is not None
     print(data)
+    assert data is not None
     return {
         "id": data.get('userId', None),
         "title": data.get('title', None),

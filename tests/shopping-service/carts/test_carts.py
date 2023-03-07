@@ -3,8 +3,7 @@ import requests
 from pytest_bdd import given, parsers, scenario, when, then
 
 from verifit.config import get_store_reader, get_store_writer
-from verifit.login import get_bearer_authorization_header_value, login_from_cache
-from verifit.driver import get_functionality_per_driver
+from verifit.login import get_bearer_authorization_header_value, login_main_user_from_cache
 
 get_env = get_store_reader()
 set_env = get_store_writer()
@@ -32,8 +31,7 @@ def given_cart_id(cart_id):
     parsers.re(r"I fetch this cart"),
 )
 def when_fetch_cart(shopping_driver):
-    user = get_functionality_per_driver(shopping_driver)('get-main-login-user')()
-    login_from_cache(user)(shopping_driver)
+    login_main_user_from_cache(shopping_driver)
     cart_id = get_env('cart_id')
     url = f"{get_env('SHOPPING_SERVICE_URL')}/products/{cart_id}"
     print(f"Getting product {cart_id} from shopping server")
