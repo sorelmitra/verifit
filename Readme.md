@@ -295,13 +295,13 @@ Once your code changes are ready and documented, do the following to upload:
 
    ```toml
    [project]
-   version = "1.0.7"
+   version = "1.0.8"
    ```
 
 4. Increase the minimum version in `tests/requirements.txt`:
 
    ```
-   verifit >= 1.0.7
+   verifit >= 1.0.8
    ```
 
 5. Build package. Run:
@@ -313,19 +313,19 @@ Once your code changes are ready and documented, do the following to upload:
 6. Check build. Run:
 
    ```shell
-   twine check dist/verifit-1.0.7*
+   twine check dist/verifit-1.0.8*
    ```
 
 7. Upload to Test.PyPI. Run:
 
    ```shell
-   twine upload -r testpypi dist/verifit-1.0.7*
+   twine upload -r testpypi dist/verifit-1.0.8*
    ```
 
 8. Install manually from Test.PyPI. Run:
 
    ```shell
-   pip install -i https://test.pypi.org/simple verifit==1.0.7
+   pip install -i https://test.pypi.org/simple verifit==1.0.8
    ```
     (First time it may fail, in this case, rerun the above command.)
 
@@ -338,7 +338,7 @@ Once your code changes are ready and documented, do the following to upload:
 10. If everything goes well, upload to PyPI. Run:
 
    ```shell
-   twine upload dist/verifit-1.0.7*
+   twine upload dist/verifit-1.0.8*
    ```
 
 11. Install sample tests requirements. Run:
