@@ -1,1 +1,1 @@
-verifit >= 1.0.6
+verifit >= 1.0.7
