@@ -104,7 +104,7 @@ def test_stuff(my_driver):
    my_driver(data)
 ```
 
-Now the framework will make sure to call `do-stuff` for each driver that is specified in the environment variable `MY_DRIVER`, or by default for the list declared in the fixture: `['my-service-rest', 'my-service-graphql', 'my-service-ui']`.  Specifically, it will look for Python files named like this, in the same folder as your test file:
+Now the framework will make sure to call `do-stuff` for each driver that is specified in the environment variable `MY_DRIVER`, or by default for the list declared in the fixture: `['my-service-rest', 'my-service-graphql', 'my-service-ui']`.  Specifically, it will look for Python files named like this, in any folder known to PyTest:
 
 - `my-service-rest_do-stuff.py`: Do stuff via REST.
 - `my-service-graphql_do-stuff.py`: Do stuff via GraphQL.
