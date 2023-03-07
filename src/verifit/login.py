@@ -22,7 +22,9 @@ def get_access_token(login_data):
 
 
 def get_access_token_from_env():
-    return get_access_token(get_env(KEY_LOGIN_DATA))
+    login_data = get_env(KEY_LOGIN_DATA)
+    print(f"Using cached login data <{login_data}>")
+    return get_access_token(login_data)
 
 
 def get_expiry_date(login_data):
@@ -89,14 +91,18 @@ def login(user):
 def get_login_values_from_cache(username):
     user_cached_data = cache_get(username)
     if user_cached_data is None:
+        print(f"Cache miss key <{username}>, no cached data")
         return None
     token_expiry_iso_string = user_cached_data.get('expiryDate', None)
     if token_expiry_iso_string is None:
+        print(f"Cache miss key <{username}>, no expiration info")
         return None
     token_expiry_date = datetime.fromisoformat(token_expiry_iso_string)
     minutes = date_diff_in_minutes(token_expiry_date, datetime.now())
     if minutes < 10:
+        print(f"Cache miss key <{username}>, almost expired")
         return None
+    print(f"Cache hit key <{username}>")
     return create_login_data()(user_cached_data.get('accessToken', None))(token_expiry_date)
 
 
@@ -105,6 +111,7 @@ def login_from_cache(user):
         login_data = get_login_values_from_cache(get_login_user_name(user))
         if login_data is None:
             login_data = login(user)(login_driver)
+        print(f"Caching login data <{login_data}>")
         set_env(KEY_LOGIN_DATA)(login_data)
         return login_data
     return with_driver
