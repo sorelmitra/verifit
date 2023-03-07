@@ -10,7 +10,9 @@ def test_post(post_driver):
     assert len(data.get('body', 'None')) > 0
 
 
-@pytest.mark.skip_driver('post-service-2')
+@pytest.mark.skip_drivers([
+    {'name': 'post-service-2', 'reason': 'Cannot do a second post via GraphQL'}
+])
 @pytest.mark.driver_functionality('post')
 def test_post_second(post_driver):
     data = post_driver('2')

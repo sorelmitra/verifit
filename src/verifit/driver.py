@@ -27,9 +27,13 @@ def get_driver_params(env_var, default_values):
 
 
 def get_driver(request):
-    driver_to_skip = get_marker(request)('skip_driver')
-    if driver_to_skip == request.param:
-        pytest.skip('skipped for this driver: {}'.format(driver_to_skip))
+    drivers_to_skip = get_marker(request)('skip_drivers') or []
+    for driver_to_skip in drivers_to_skip:
+        name = driver_to_skip.get('name', None)
+        reason = driver_to_skip.get('reason', 'skipped for this driver: {}'.format(driver_to_skip))
+        if name == request.param:
+            pytest.skip(reason)
+            break
 
     functionality_name = get_marker(request)('driver_functionality')
     functionality = f"{request.param}_{functionality_name}"

@@ -114,17 +114,19 @@ Inside each Python file, it will expect to find an `execute()` function, which i
 
 If you need to specify `MY_DRIVER`, do it like this: `MY_DRIVER='my-service-rest,my-service-ui' pytest my-tests`.  This will run your tests for only the REST and UI drivers.
 
-In case a particular test does not make sense for a particular driver, mark it as such with:
+In case a particular test does not make sense for particular drivers, mark it as such with:
 
 ```python
-@pytest.mark.skip_driver('my-service-ui')
+@pytest.mark.skip_drivers([
+    {'name': 'my-service-ui', 'reason': 'Not implemented yet'}
+])
 @pytest.mark.driver_functionality('do_another_stuff')
 def test_another_stuff(my_driver):
    data = {}  # the data that <do_another_stuff> needs
    my_driver(data)
 ```
 
-Now the framework will skip `test_another_stuff` if the driver is for UI, and instruct PyTest to display an appropriate message.
+Now the framework will skip `test_another_stuff` if the driver is for UI, and instruct PyTest to display the given reason.  You can specify multiple drivers for which a test is to be skipped.  The name is mandatory.  If a reason is not specified, it will display a default reason.
 
 ## 3. Inspire from the Sample Tests 
 
