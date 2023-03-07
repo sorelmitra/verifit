@@ -40,16 +40,20 @@ However, one particular testing methodology I favor is **black box testing**, in
 
 # Overview
 
-Normally, if you're using PyTest and a few helper Python modules, you can test pretty much anything quite fast, without needing a library.  However, as you start doing this, you soon realize you're going to need some things over and over again in your tests.  This small library provides a few helpers for making a developer's automatic testing easier:
+This library supports any type of tests that can be done with PyTest, and note that this is by no means limited to Python projects.
+
+You can by all means have your automatic developer testing done in a different language than your project's.  PyTest is my go-to stack for automatic testing, in the absence of constraints imposed by the project I'm working on.
+
+Normally, if you're using PyTest and a few other standard Python modules, you can test pretty much anything quite fast, without needing a library.  However, as you start doing this, you soon realize you're going to need some things over and over again in your tests.  This small library provides a few helpers for making a developer's automatic testing easier:
 
 - Quick configuration.
 - A cache for speeding up things such as getting access tokens, or any other data that is reused.
 - A quick way to do driver-based testing, in which the test case relies on a particular driver (specified at runtime)  that does the action and returns the result.  This allows you to run the same test against different drivers, such as an API, UI, etc.
 - Simplified mechanism for skipping tests that are not suitable for a particular driver.
-- Web-Sockets testing.
-- Some other helper tools, like date & time, generating random values.
+- Web-Sockets testing.  (I couldn't find a Python package that makes testing Web-Sockets as easy as calling a couple of functions.)
+- Some other helper tools, like date & time, generating random values, etc.
 
-This repo consists of the actual library, which is in `lib/`, some sample shell scripts, and sample tests from which you can inspire.
+This repo consists of the actual library, which is in `lib/`, and some sample tests from which you can inspire when writing your own.
 
 
 # Quick Start with Writing Tests
@@ -58,17 +62,17 @@ This repo consists of the actual library, which is in `lib/`, some sample shell 
 
 - Install Python 3.6 or higher.
 - Install PyTest.
-- Copy the [requirements from the sample tests](https://github.com/sorelmitra/verifit/blob/main/tests/requirements.txt) to your PyTest project and install them.  This will basically install the `verifit` library to its latest version.
+- Copy the [requirements from the sample tests](https://github.com/sorelmitra/verifit/blob/main/tests/requirements.txt) to your PyTest project and install them.  This will basically install the `verifit` library to its latest stable version.
 
 ## 2. Prepare a `conftest.py` File with Drivers
 
 **Note 1**: You can skip this section if you're not going to use drivers in your tests.
 
-**Note 2**: You can see the pattern explained below applied for the sample tests in  `tests/conftest.py`.
+**Note 2**: The Post-Service and Shopping-Service sample tests use drivers.  For more details, check our [reference](#reference) section below.
 
-Assume you have two services, `my-service`, and `my-second-service`, and each one of them has different needs for a driver:
+Let's assume you have two services, `my-service`, and `my-second-service`, and each one of them has different needs for a driver:
 
-- `my-service` has a REST, GraphQL, and UI interface, and you want to test them all, ideally without duplicating test cases.  The use cases for all interfaces are similar and you want to reuse your test cases.
+- `my-service` has a REST, GraphQL, and UI interface, and you want to test them all, ideally without duplicating test cases.  The use cases for all interfaces are similar, and you want to reuse your test cases.
 - `my-second-service` has multiple versions, and most of your tests apply to all of them, so again  you want to reuse them.
 
 To achieve this with this library, add the following code into your `conftest.py` file:
@@ -94,17 +98,19 @@ def my_second_driver(request):
 Then in your test file, use the driver like this:
 
 ```python
-@pytest.mark.driver_functionality('do_stuff')
+@pytest.mark.driver_functionality('do-stuff')
 def test_stuff(my_driver):
-   data = {}  # the data that <do_stuff> needs
+   data = {}  # the data that <do-stuff> needs
    my_driver(data)
 ```
 
-Now the framework will make sure to call `do_stuff` for each driver that is specified in the environment variable `MY_DRIVER`, or by default for the list declared in the fixture: `['my-service-rest', 'my-service-graphql', 'my-service-ui']`.  Specifically, it will look for files named like this, in the same folder as your test file:
+Now the framework will make sure to call `do-stuff` for each driver that is specified in the environment variable `MY_DRIVER`, or by default for the list declared in the fixture: `['my-service-rest', 'my-service-graphql', 'my-service-ui']`.  Specifically, it will look for Python files named like this, in the same folder as your test file:
 
-- `my-service-rest-do_stuff.py`: Do stuff via REST.
-- `my-service-graphql-do_stuff.py`: Do stuff via GraphQL.
-- `my-service-ui-do_stuff.py`: Do stuff via UI.
+- `my-service-rest_do-stuff.py`: Do stuff via REST.
+- `my-service-graphql_do-stuff.py`: Do stuff via GraphQL.
+- `my-service-ui_do-stuff.py`: Do stuff via UI.
+
+Inside each Python file, it will expect to find an `execute()` function, which it will load and return as a first-class object.  Note that the `execute()` function is not being called by the framework.
 
 If you need to specify `MY_DRIVER`, do it like this: `MY_DRIVER='my-service-rest,my-service-ui' pytest my-tests`.  This will run your tests for only the REST and UI drivers.
 
@@ -129,11 +135,11 @@ We have a bunch of test suites that you can inspire from.  Each suite tests an i
    - `post-service-2` that connects to a GraphQL API.
 2. **Echo-Service**.  It sends a message to a Web-Sockets server and gives back the response.  In our case, the dummy WSS server echoes back whatever we're sending, so the test verifies this.
 3. **Shopping-Service**.  This test shows multiple features:
-   - Login and get an access token.  (`test_login.py`.)
-   - Accessing an authorized endpoint with an access token.  (`test_products.py`.)
-   - Caching some values, in this case the access token for a particular user.  (`test_login.py`.)
-   - Log in from cache, which means reusing the cached access token if it's not close to expiration date.  If no suitable token is found, log in again.  (`test_products.py`.)
-   - BDD using `pytest-bdd` and Gherkin.  Implements a similar test to `test_products.py`, but this time with a Gherkin feature file and `@given`, `@when`, `@then`.  Showcases matching a Gherkin declaration with regular expressions.  (`test_carts.py`.)
+   - Login and get an access token.  (`test_login.py`)
+   - Accessing an authorized endpoint with an access token.  (`test_products.py`)
+   - Caching some values, in this case the access token for a particular user.  (`test_login.py`)
+   - Log in from cache, which means reusing the cached access token if it's not close to expiration date.  If no suitable token is found, log in again.  (`test_products.py`)
+   - BDD using `pytest-bdd` and Gherkin.  Implements a similar test to `test_products.py`, but this time with a Gherkin feature file and `@given`, `@when`, `@then`.  Showcases matching a Gherkin declaration with regular expressions.  (`test_carts.py`)
 4. **Date-Service**.  It runs the shell command `date` with some arguments, and verifies the resulting output.
 5. **Kitchen-Service**.  Web UI test using Cypress.IO and their kitchen sink sample page.  It is called from a Python test that runs Cypress via `subprocess`.
 
@@ -180,23 +186,86 @@ ENV=sandbox tenant=dev-test MY_DRIVER='my-service-rest,my-service-ui' pytest tes
 
 The entire library is coded using Functional Programming principles.  Thus, you will see:
 
-- At most one argument for each function.
+- Pure functions, that return the same result given the same input, and that do not have side effects.
+- Immutability & disciplined state - functions do not alter state outside them, and there's no shared state between functions.
+- Currying - at most one argument for each function.
 - Higher-order functions - that return another function.
 - The memoize pattern used to make sure a single instance of a thing exists (in our case the config store).
+- No global variables, not even a singleton - memoize takes care of this.
 
-Helpers:
+## Helpers
 
-- `cache.py`.  Implements a simple cache, stored in `.<env>-cache.json` 
-- `config.py`.  Loads configuration via `dotenv` package, and returns a memoized store for getting/setting values.
+- `cache.py`.  Implements a simple cache, stored in `<tests>/.<env>-cache.json` 
+- `config.py`.  Loads configuration via `dotenv` package, and returns a memoized store for getting/setting values across tests.
 - `date_and_time.py`.  Some simple date/time utils, such as a diff.
-- `driver.py`.  Imports a driver based on a driver name.  Built for calling from `conftest.py`, see above section for [preparing drivers](#2-prepare-a-conftestpy-file-with-drivers).
+- `driver.py`.  Imports a driver function that you define, based on a driver name and functionality name.  It allows you to:
+    - Quickly define PyTest fixtures that automatically load a functionality based on it's name and the driver name.
+    - Manually load a functionality based its name, and on the driver name that's extracted from an existing fixture.
 - `generate.py`.  Functions to generate some data.
 - `iam_token.py`.  Decoding and extracting data from a JWT.
-- `login.py`.  Functions to log in or log in from cache, and for building authorization values (one for REST, one for the Python GraphQL client.)
-- `memoize.py`.  Simple memoize pattern.
-- `web_sockets.py`.  Simplifies Web-Sockets testing by listening in background for received packages, and sending data.
+- `login.py`.  Functions to:
+    - Log in, including by using a cached token.
+    - Building authorization values:
+      - For HTTP headers.
+      - For the Python GraphQL client.
+- `memoize.py`.  Simple memoize pattern, used by `config.py`.
+- `web_sockets.py`.  Simplifies Web-Sockets testing by offering simple functions for listening in background for received packages, and sending data.
 
+## Drivers
 
+We have already shown a few practical steps for how to use drivers, in the above section for [preparing drivers](#2-prepare-a-conftestpy-file-with-drivers).
+
+Here, we go into more details on how this works.  We explain how the sample shopping test & driver are implemented, with respect to login.
+
+So we want to log in from the tests to our shopping service using the endpoint that the latter offers.  For now, we only have one endpoint for this, but assuming we later might add another one, or that we will be adding UI on top of this, we want to use drivers in order to have the flexibility of using the new endpoint or the UI, without changing the test.
+
+To achieve this, first define in `conftest.py` a parameterized PyTest fixture like this:
+
+```python
+import pytest
+from verifit.driver import get_driver_params, get_driver
+@pytest.fixture(params=get_driver_params('SHOPPING_DRIVER', ['shopping-service']))  # (1)
+def shopping_driver(request):
+    return get_driver(request)  # (2)
+```
+
+Then, in your test, say:
+
+```python
+import pytest
+from verifit.driver import get_functionality_per_driver
+from verifit.login import login_from_cache
+@pytest.mark.driver_functionality('login')  # (3)
+def test_products(shopping_driver):  # (4)
+    user = get_functionality_per_driver(shopping_driver)('get-main-login-user')()  # (5)
+    login_from_cache(user)(shopping_driver)  # (6)
+```
+
+Explanation:
+
+- At (1) we define a PyTest fixture that takes the params as returned by the `get_driver_params` library function from `verifit`.  This function returns either:
+   - A list obtained by splitting at comma (`,`) the value of the environment variable whose name is given in the first parameter (`'SHOPPING_DRIVER'` in this case).
+   - The list defined by the second parameter (`['shopping-service']`) in case that the environment variable is not defined.
+   - In our case, it will return `'shopping-service'`.
+- At (2), the fixture just calls `get_driver(request)`.  Here `request` is the standard PyTest way of giving the fixture access to the calling context.  What `get_driver` does, is:
+   - Compose a name from the value returned by `get_driver_params` and the `driver_functionality` specified in the test (see below).  It gets access to those values by using PyTest standard functions.
+   - In this case, the composed name will be `'shopping-service_login'`
+   - Load a Python module by that name, from the same directory as the test file.
+   - Return that module's `execute()` function.
+   - Note that the `execute()` function is not being called here, but returned as a first-class object.
+   - In our case, the driver will return the `execute(user)` function that's defined in `shopping-service_login.py`.
+- At (3), we mark the test with the `driver_functionality` option that we mentioned above.  This option is defined in `pytest.ini` as "specifies functionality for driver to load".  In our case, the functionality is named `'login'`.  As explained above, the driver will use this name to compose a Python file name of the form `<driver-name>_<functionality>.py`, then it will expect that file to have an `execute()` function which it will return, but not call.
+- At (4) we let PyTest know that this test needs the `shopping_driver` fixture we defined at (1).
+- At (5), we see another way of getting a functionality via an existing driver instance:
+    - In `shopping_driver` we have the `execute(user)` function that's defined in `shopping-service_login.py`.
+   - We first call `get_functionality_per_driver` with the driver instance.  This will give us a function that can load a functionality with that particular driver's name (`verifit` does some magic for this, using Python's `inspect` module).
+   - Then, call the given function with the functionality name, in this case `'get-main-login-user'`.  This will return to us the `execute()` function of the functionality we want, in this case, from the `shopping-service_main-login-user.py` file.
+   - Finally, call the `execute()` function that we got.  This will execute that functionality we wanted for that driver.  In this case, it will give us the user to use for the `'login'` functionality.
+- At (6) we put together all these pieces by calling `login_from_cache(user)(shopping_driver)`:
+   - `login_from_cache(user)` returns a function that expects a driver.
+   - We then call that function with our `shopping_driver`.
+   - That function will either load an access token from the cache, or in case this one is not usable, it will call to `login(user)(shopping_driver)`.
+   - The `login()` function again expects a user and then a driver, and it will call to that driver.  Because we specified `shopping_driver` with a functionality of `'login'`, the net result will be calling to the `execute(user)` function that's defined in `shopping-service_login.py`.
 
 
 # Development
@@ -212,23 +281,27 @@ First, set up a few things:
 
 The lib code is in `src/verifit`.  Make sure to use proper `.` imports to avoid importing from the installed `verifit` library accidentally.
 
-Once your code changes are ready and documented (if need be), do the following to upload:
+Once your code changes are ready and documented, do the following to upload:
 
 1. Commit everything to GIT.
 
-2. Check Manifest: Run `check-manifest`.
+2. Check Manifest. Run:
+
+   ```shell
+   check-manifest
+   ```
 
 3. Increase the version in `pyproject.toml`:
 
    ```toml
    [project]
-   version = "1.0.6"
+   version = "1.0.7"
    ```
 
 4. Increase the minimum version in `tests/requirements.txt`:
 
    ```
-   verifit >= 1.0.6
+   verifit >= 1.0.7
    ```
 
 5. Build package. Run:
@@ -240,22 +313,21 @@ Once your code changes are ready and documented (if need be), do the following t
 6. Check build. Run:
 
    ```shell
-   twine check dist/verifit-1.0.6*
+   twine check dist/verifit-1.0.7*
    ```
 
 7. Upload to Test.PyPI. Run:
 
    ```shell
-   twine upload -r testpypi dist/verifit-1.0.6*
+   twine upload -r testpypi dist/verifit-1.0.7*
    ```
 
 8. Install manually from Test.PyPI. Run:
 
    ```shell
-   pip install -i https://test.pypi.org/simple verifit==1.0.6
+   pip install -i https://test.pypi.org/simple verifit==1.0.7
    ```
-
-   (First time it may fail, in this case, rerun the above command.)
+    (First time it may fail, in this case, rerun the above command.)
 
 9. Run the sample tests:
 
@@ -266,7 +338,7 @@ Once your code changes are ready and documented (if need be), do the following t
 10. If everything goes well, upload to PyPI. Run:
 
    ```shell
-   twine upload dist/verifit-1.0.6*
+   twine upload dist/verifit-1.0.7*
    ```
 
 11. Install sample tests requirements. Run:
@@ -274,14 +346,16 @@ Once your code changes are ready and documented (if need be), do the following t
    ```shell
    cd tests/ && pip install -r requirements.txt
    ```
+    (First time it may fail, in this case, rerun the above command.)
 
 12. Run the sample tests again:
 
    ```shell
    cd tests/ && pytest .
    ```
+    If all went well, they should pass.
 
-If all went well, they should pass.  You can now push to GIT.
+13. You can now push to GIT.
 
 ## Sample Tests
 

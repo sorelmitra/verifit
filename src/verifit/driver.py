@@ -1,4 +1,5 @@
 import importlib
+import inspect
 
 import pytest
 
@@ -31,3 +32,14 @@ def get_driver(request):
     functionality = get_marker(request)('driver_functionality')
     module = importlib.import_module(f"{request.param}_{functionality}")
     return module.execute
+
+
+def get_functionality_per_driver(driver_instance):
+    def with_functionality(name):
+        module = inspect.getmodule(driver_instance)
+        name_parts = module.__name__.split('_')
+        user_type_driver_name = f"{name_parts[0]}_{name}"
+        user_type_driver = importlib.import_module(user_type_driver_name)
+        login_user_type_module = user_type_driver.execute
+        return login_user_type_module
+    return with_functionality

@@ -3,14 +3,15 @@ import requests
 
 from verifit.config import get_store_reader
 from verifit.login import get_bearer_authorization_header_value, login_from_cache
-from user import get_main_login_user
+from verifit.driver import get_functionality_per_driver
 
 get_env = get_store_reader()
 
 
 @pytest.mark.driver_functionality('login')
 def test_products(shopping_driver):
-    login_from_cache(get_main_login_user())(shopping_driver)
+    user = get_functionality_per_driver(shopping_driver)('get-main-login-user')()
+    login_from_cache(user)(shopping_driver)
     url = f"{get_env('SHOPPING_SERVICE_URL')}/products/1"
     print('Getting product 1 from shopping server')
     response = requests.get(
