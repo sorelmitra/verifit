@@ -104,11 +104,13 @@ def test_stuff(my_driver_name):
    get_driver(my_driver_name)('do-stuff')(data)
 ```
 
-Now the framework will make sure to call `do-stuff` for each driver that is specified in the environment variable `MY_DRIVER`, or by default for the list declared in the fixture: `['my-service-rest', 'my-service-graphql', 'my-service-ui']`.  Specifically, it will look for Python files named like this, in any folder known to PyTest:
+Now the framework will make sure to call `do-stuff` for each driver that is specified in the environment variable `MY_DRIVER`, or by default for the list declared in the fixture: `['my-service-rest', 'my-service-graphql', 'my-service-ui']`.  Specifically, it will look for Python files named like this, in any folder known to PyTest **(*)**:
 
 - `my-service-rest_do-stuff.py`: Do stuff via REST.
 - `my-service-graphql_do-stuff.py`: Do stuff via GraphQL.
 - `my-service-ui_do-stuff.py`: Do stuff via UI.
+
+**(*)** **Note**: For this to work, though, you need that other folder to have **at least** one `test_...` function that Py.Test collects, otherwise it will not be in the path and it will fail to find your driver.
 
 Inside each Python file, it will expect to find an `execute()` function, which it will load and return as a first-class object.  Note that the `execute()` function is not being called by the framework.
 

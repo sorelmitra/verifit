@@ -7,6 +7,11 @@ from verifit.login import get_bearer_authorization_header_value, login_main_user
 get_env = get_store_reader()
 
 
+# Note how we use here a driver defined in another folder.
+# For this to work, though, you need that other folder to have
+# at least one `test_...` function that Py.Test collects,
+# otherwise it will not be in the path and it will fail to find 
+# your driver.
 def test_products(shopping_driver_name):
     login_main_user_from_cache(shopping_driver_name)
     url = f"{get_env('SHOPPING_SERVICE_URL')}/products/1"
