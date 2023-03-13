@@ -1,1 +1,9 @@
-verifit >= 1.0.11
+verifit >= 1.0.12
+
+PyJWT
+pytest
+pytest-bdd
+python-dotenv
+python_graphql_client
+requests
+websockets

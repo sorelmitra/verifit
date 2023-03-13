@@ -62,13 +62,13 @@ This repo consists of the actual library, which is in `lib/`, and some sample te
 
 - Install Python 3.6 or higher.
 - Install PyTest.
-- Copy the [requirements from the sample tests](https://github.com/sorelmitra/verifit/blob/main/tests/requirements.txt) to your PyTest project and install them.  This will basically install the `verifit` library to its latest stable version.
+- Copy the [requirements from the sample tests](https://github.com/sorelmitra/verifit/blob/main/tests/requirements.txt) to your PyTest project and install them.  This will basically install the `verifit` library to its latest stable version, along with all other requirements for these particular tests.
 
-## 2. Prepare a `conftest.py` File with Drivers
+## 2. Prepare a ConfTest File with Driver Names
 
 **Note 1**: You can skip this section if you're not going to use drivers in your tests.
 
-**Note 2**: The Post-Service and Shopping-Service sample tests use drivers.  For more details, check our [reference](#reference) section below.
+**Note 2**: The Post-Service and Shopping-Service sample tests use drivers.  For more details, check our [drivers reference](#drivers) section below.
 
 Let's assume you have two services, `my-service`, and `my-second-service`, and each one of them has different needs for a driver:
 
@@ -80,17 +80,17 @@ To achieve this with this library, add the following code into your `conftest.py
 ```python
 import pytest
 
-from src.lib.driver import get_driver_params, get_driver
+from src.lib.driver import get_driver_params, get_driver_name
 
 
 @pytest.fixture(params=get_driver_params('MY_DRIVER', ['my-service-rest', 'my-service-graphql', 'my-service-ui']))
-def my_driver(request):
-    return get_driver(request)
+def my_driver_name(request):
+    return get_driver_name(request)
 
 
 @pytest.fixture(params=get_driver_params('MY_SECOND_DRIVER', ['my-second-service-v1', 'my-second-service-v2', 'my-second-service-v3', 'my-second-service-v4']))
-def my_second_driver(request):
-    return get_driver(request)
+def my_second_driver_name(request):
+    return get_driver_name(request)
 ```
 
 (In the rest of this section, we focus on `my-service`.  The same pattern applies for `my-second-service`.)
@@ -98,10 +98,10 @@ def my_second_driver(request):
 Then in your test file, use the driver like this:
 
 ```python
-@pytest.mark.driver_functionality('do-stuff')
-def test_stuff(my_driver):
+from verifit.driver import get_driver
+def test_stuff(my_driver_name):
    data = {}  # the data that <do-stuff> needs
-   my_driver(data)
+   get_driver(my_driver_name)('do-stuff')(data)
 ```
 
 Now the framework will make sure to call `do-stuff` for each driver that is specified in the environment variable `MY_DRIVER`, or by default for the list declared in the fixture: `['my-service-rest', 'my-service-graphql', 'my-service-ui']`.  Specifically, it will look for Python files named like this, in any folder known to PyTest:
@@ -120,10 +120,9 @@ In case a particular test does not make sense for particular drivers, mark it as
 @pytest.mark.skip_drivers([
     {'name': 'my-service-ui', 'reason': 'Not implemented yet'}
 ])
-@pytest.mark.driver_functionality('do_another_stuff')
-def test_another_stuff(my_driver):
-   data = {}  # the data that <do_another_stuff> needs
-   my_driver(data)
+def test_another_stuff(my_driver_name):
+   data = {}  # the data that <do-another-stuff> needs
+   get_driver(my_driver_name)('do-another-stuff')(data)
 ```
 
 Now the framework will skip `test_another_stuff` if the driver is for UI, and instruct PyTest to display the given reason.  You can specify multiple drivers for which a test is to be skipped.  The name is mandatory.  If a reason is not specified, it will display a default reason.
@@ -201,8 +200,8 @@ The entire library is coded using Functional Programming principles.  Thus, you 
 - `config.py`.  Loads configuration via `dotenv` package, and returns a memoized store for getting/setting values across tests.
 - `date_and_time.py`.  Some simple date/time utils, such as a diff.
 - `driver.py`.  Imports a driver function that you define, based on a driver name and functionality name.  It allows you to:
-    - Quickly define PyTest fixtures that automatically load a functionality based on it's name and the driver name.
-    - Manually load a functionality based its name, and on the driver name that's extracted from an existing fixture.
+    - Quickly define PyTest fixtures that gives you the driver name based on [fixture parameterizing](https://docs.pytest.org/en/7.1.x/how-to/fixtures.html#fixture-parametrize).
+    - Call a driver by name and functionality, with parameters.
 - `generate.py`.  Functions to generate some data.
 - `iam_token.py`.  Decoding and extracting data from a JWT.
 - `login.py`.  Functions to:
@@ -215,7 +214,7 @@ The entire library is coded using Functional Programming principles.  Thus, you 
 
 ## Drivers
 
-We have already shown a few practical steps for how to use drivers, in the above section for [preparing drivers](#2-prepare-a-conftestpy-file-with-drivers).
+We have already shown a few practical steps for how to use drivers, in the above section for [preparing drivers](#2-prepare-a-conftest-file-with-driver-names).
 
 Here, we go into more details on how this works.  We explain how the sample shopping test & driver are implemented, with respect to login.
 
@@ -225,22 +224,24 @@ To achieve this, first define in `conftest.py` a parameterized PyTest fixture li
 
 ```python
 import pytest
-from verifit.driver import get_driver_params, get_driver
+from verifit.driver import get_driver_params, get_driver_name
 @pytest.fixture(params=get_driver_params('SHOPPING_DRIVER', ['shopping-service']))  # (1)
 def shopping_driver(request):
-    return get_driver(request)  # (2)
+    return get_driver_name(request)  # (2)
 ```
 
 Then, in your test, say:
 
 ```python
 import pytest
-from verifit.driver import get_functionality_per_driver
+from verifit.driver import get_driver
 from verifit.login import login_from_cache
-@pytest.mark.driver_functionality('login')  # (3)
-def test_products(shopping_driver):  # (4)
-    user = get_functionality_per_driver(shopping_driver)('get-main-login-user')()  # (5)
-    login_from_cache(user)(shopping_driver)  # (6)
+def test_products(shopping_driver_name):  # (3)
+    get_user = get_driver(shopping_driver_name)('user')  # (4)
+    user = get_user('MAIN')  # (5)
+    do_login = get_driver(shopping_driver_name)('login')  # (6)
+    login_from_cache(user)(do_login)  # (7)
+    # ... actual test, we're now logged in
 ```
 
 Explanation:
@@ -248,26 +249,20 @@ Explanation:
 - At (1) we define a PyTest fixture that takes the params as returned by the `get_driver_params` library function from `verifit`.  This function returns either:
    - A list obtained by splitting at comma (`,`) the value of the environment variable whose name is given in the first parameter (`'SHOPPING_DRIVER'` in this case).
    - The list defined by the second parameter (`['shopping-service']`) in case that the environment variable is not defined.
-   - In our case, it will return `'shopping-service'`.
-- At (2), the fixture just calls `get_driver(request)`.  Here `request` is the standard PyTest way of giving the fixture access to the calling context.  What `get_driver` does, is:
-   - Compose a name from the value returned by `get_driver_params` and the `driver_functionality` specified in the test (see below).  It gets access to those values by using PyTest standard functions.
-   - In this case, the composed name will be `'shopping-service_login'`
+   - In our case, it will return, e.g., `'shopping-service'`.
+- At (2), the fixture just calls `get_driver_name(request)`.  Here `request` is the standard PyTest way of giving the fixture access to the calling context.  What `get_driver_name` does, is:
+   - Mark the requesting test as skipped if `skip_drivers` is present, see [above conftest section](#2-prepare-a-conftestpy-file-with-driver-names) for an example.
+   - Return `request.param`, which is essentially the parameter value obtained from the params list added to the fixture, e.g., `'shopping-service'`.
+- At (3) we let PyTest know that this test needs the `shopping_driver_name` fixture we defined at (1).
+- At (4), we get the user driver, by calling `get_user = get_driver(shopping_driver_name)('user')`.  This will:
+   - Compose the name `<shopping_driver_name>_user`.  In this case, the composed name will be `'shopping-service_user'`.
    - Load a Python module by that name, from the same directory as the test file.
    - Return that module's `execute()` function.
    - Note that the `execute()` function is not being called here, but returned as a first-class object.
-   - In our case, the driver will return the `execute(user)` function that's defined in `shopping-service_login.py`.
-- At (3), we mark the test with the `driver_functionality` option that we mentioned above.  This option is defined in `pytest.ini` as "specifies functionality for driver to load".  In our case, the functionality is named `'login'`.  As explained above, the driver will use this name to compose a Python file name of the form `<driver-name>_<functionality>.py`, then it will expect that file to have an `execute()` function which it will return, but not call.
-- At (4) we let PyTest know that this test needs the `shopping_driver` fixture we defined at (1).
-- At (5), we see another way of getting a functionality via an existing driver instance:
-    - In `shopping_driver` we have the `execute(user)` function that's defined in `shopping-service_login.py`.
-   - We first call `get_functionality_per_driver` with the driver instance.  This will give us a function that can load a functionality with that particular driver's name (`verifit` does some magic for this, using Python's `inspect` module).
-   - Then, call the given function with the functionality name, in this case `'get-main-login-user'`.  This will return to us the `execute()` function of the functionality we want, in this case, from the `shopping-service_main-login-user.py` file.
-   - Finally, call the `execute()` function that we got.  This will execute that functionality we wanted for that driver.  In this case, it will give us the user to use for the `'login'` functionality.
-- At (6) we put together all these pieces by calling `login_from_cache(user)(shopping_driver)`:
-   - `login_from_cache(user)` returns a function that expects a driver.
-   - We then call that function with our `shopping_driver`.
-   - That function will either load an access token from the cache, or in case this one is not usable, it will call to `login(user)(shopping_driver)`.
-   - The `login()` function again expects a user and then a driver, and it will call to that driver.  Because we specified `shopping_driver` with a functionality of `'login'`, the net result will be calling to the `execute(user)` function that's defined in `shopping-service_login.py`.
+   - In our case, the driver will return the `execute(user_type)` function that's defined in `shopping-service_user.py`.
+- At (5), we call that driver with `'MAIN'`, which effectively returns the main user for that driver.
+- At (6), we ge the login driver, which we call `do_login`.  This works the same as for `user`.
+- At (7) we call `login_from_cache(user)(do_login)`, which will call `do_login(user)` and extract the login data from the result.
 
 
 # Development

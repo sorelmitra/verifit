@@ -4,7 +4,7 @@ from verifit.login import create_login_user
 get_env = get_store_reader()
 
 
-def execute():
-    username = get_env("SHOPPING_SERVICE_MAIN_USER_NAME")
-    password = get_env("SHOPPING_SERVICE_MAIN_USER_PASSWORD")
+def execute(user_type):
+    username = get_env(f"SHOPPING_SERVICE_{user_type}_USER_NAME")
+    password = get_env(f"SHOPPING_SERVICE_{user_type}_USER_PASSWORD")
     return create_login_user()(username)(password)

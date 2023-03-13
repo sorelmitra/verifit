@@ -10,12 +10,12 @@ set_env = get_store_writer()
 
 
 # To use PyTest parameterized fixtures with BDD, you
-# FIRST define the fixture param ('driver_functionality' below),
-# THEN define the @scenario (order DOES matter).
-# Finally, you inject the driver in the given/when/then functions.
-@pytest.mark.driver_functionality('login')
+# FISRT define the @scenario (order DOES matter).
+# THEN, you inject the driver name in the given/when/then functions.
+# This function is not actually called, anything you put into it
+# is ignored.
 @scenario('carts.feature', 'Get a cart')
-def test_carts(shopping_driver):
+def test_carts(shopping_driver_name):
     pass
 
 
@@ -27,11 +27,13 @@ def given_cart_id(cart_id):
     set_env('cart_id')(cart_id)
 
 
+# Here, we inject the driver name again.  Because we injected it
+# into the actual test function above, this works.
 @when(
     parsers.re(r"I fetch this cart"),
 )
-def when_fetch_cart(shopping_driver):
-    login_main_user_from_cache(shopping_driver)
+def when_fetch_cart(shopping_driver_name):
+    login_main_user_from_cache(shopping_driver_name)
     cart_id = get_env('cart_id')
     url = f"{get_env('SHOPPING_SERVICE_URL')}/products/{cart_id}"
     print(f"Getting product {cart_id} from shopping server")

@@ -2,10 +2,11 @@ from datetime import datetime
 
 from requests.auth import AuthBase
 
+from verifit.driver import get_driver
+
 from .cache import cache_set, cache_get
 from .config import get_store_reader, get_store_writer
 from .date_and_time import date_diff_in_minutes
-from .driver import get_functionality_per_driver
 from .iam_token import decode_token, get_token_expiration_date
 
 get_env = get_store_reader()
@@ -74,17 +75,9 @@ def create_login_user():
     return with_username
 
 
-def get_login_driver(driver):
-    return get_functionality_per_driver(driver)('login')
-
-
-def get_main_login_user(driver):
-    return get_functionality_per_driver(driver)('get-main-login-user')
-
-
 def login(user):
     def with_driver(driver):
-        access_token = get_login_driver(driver)(user)
+        access_token = driver(user)
         decoded_token = decode_token(access_token)
         token_expiry_date = get_token_expiration_date(decoded_token)
         cache_set(get_login_user_name(user), {
@@ -97,12 +90,14 @@ def login(user):
     return with_driver
 
 
-def login_main_user(driver):
-    return login(get_main_login_user(driver)())(driver)
+def login_main_user(driver_name):
+    user = get_driver(driver_name)('user')('MAIN')
+    return login(user)(get_driver(driver_name)('login'))
 
 
-def login_main_user_from_cache(driver):
-    return login_from_cache(get_main_login_user(driver)())(driver)
+def login_main_user_from_cache(driver_name):
+    user = get_driver(driver_name)('user')('MAIN')
+    return login_from_cache(user)(get_driver(driver_name)('login'))
 
 
 def get_login_values_from_cache(username):
