@@ -2,12 +2,14 @@ import json
 
 from .config import get_store_reader
 
-filename = f".{get_store_reader()('ENV')}-cache.json"
+
+def get_cache_filename():
+    return f".{get_store_reader()('ENV')}-cache.json"
 
 
 def cache_read():
     try:
-        with open(filename, 'r') as f:
+        with open(get_cache_filename(), 'r') as f:
             return json.load(f)
     except FileNotFoundError:
         return {}
@@ -16,7 +18,7 @@ def cache_read():
 
 
 def cache_write(cache):
-    with open(filename, 'w') as f:
+    with open(get_cache_filename(), 'w') as f:
         json.dump(cache, f, indent=2)
 
 
