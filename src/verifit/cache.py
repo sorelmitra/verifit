@@ -36,8 +36,8 @@ def cache_get(key):
 
 def retrieve_and_cache(retrieve_func):
     def with_arguments(args=None):
-        def with_describer(describe_func):
-            def with_key(key):
+        def with_key(key):
+            def with_describer(describe_func):
                 resp = cache_get(key)
                 if resp is None:
                     print(f"Cache miss key <{key}>")
@@ -51,6 +51,6 @@ def retrieve_and_cache(retrieve_func):
                 resp = cache_get(key)
                 print(f"{key}: {describe_func(resp)}")
                 return resp
-            return with_key
-        return with_describer
+            return with_describer
+        return with_key
     return with_arguments
