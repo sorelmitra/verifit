@@ -2,11 +2,11 @@ from datetime import datetime
 
 from requests.auth import AuthBase
 
-from verifit.driver import get_driver
+from .driver import get_driver
 
 from .cache import cache_set, cache_get
 from .config import get_store_reader, get_store_writer
-from .date_and_time import date_diff_in_minutes
+from .date_and_time import date_diff, in_minutes
 from .iam_token import decode_token, get_token_expiration_date
 
 get_env = get_store_reader()
@@ -110,7 +110,7 @@ def get_login_values_from_cache(username):
         print(f"Cache miss key <{username}>, no expiration info")
         return None
     token_expiry_date = datetime.fromisoformat(token_expiry_iso_string)
-    minutes = date_diff_in_minutes(token_expiry_date, datetime.now())
+    minutes = date_diff(token_expiry_date)(datetime.now())(in_minutes())()
     if minutes < 10:
         print(f"Cache miss key <{username}>, almost expired")
         return None
