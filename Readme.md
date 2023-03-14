@@ -51,7 +51,7 @@ Normally, if you're using PyTest and a few other standard Python modules, you ca
 - A quick way to do driver-based testing, in which the test case relies on a particular driver (specified at runtime)  that does the action and returns the result.  This allows you to run the same test against different drivers, such as an API, UI, etc.
 - Simplified mechanism for skipping tests that are not suitable for a particular driver.
 - Web-Sockets testing.  (I couldn't find a Python package that makes testing Web-Sockets as easy as calling a couple of functions.)
-- Some other helper tools, like date & time, generating random values, etc.
+- Some other helper tools, like date & time, etc.
 
 This repo consists of the actual library, which is in `lib/`, and some sample tests from which you can inspire when writing your own.
 
@@ -204,7 +204,6 @@ The entire library is coded using Functional Programming principles.  Thus, you 
 - `driver.py`.  Imports a driver function that you define, based on a driver name and functionality name.  It allows you to:
     - Quickly define PyTest fixtures that gives you the driver name based on [fixture parameterizing](https://docs.pytest.org/en/7.1.x/how-to/fixtures.html#fixture-parametrize).
     - Call a driver by name and functionality, with parameters.
-- `generate.py`.  Functions to generate some data.
 - `iam_token.py`.  Decoding and extracting data from a JWT.
 - `login.py`.  Functions to:
     - Log in, including by using a cached token.
