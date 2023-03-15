@@ -23,7 +23,7 @@ def execute(post_id):
         },
     )
     data = response.json()
-    print(data)
+    print('Received REST post response', data)
     assert data is not None
     return {
         "id": data.get('userId', None),
