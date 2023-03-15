@@ -18,6 +18,7 @@ def execute(an_id):
     )
     print('Received product response', response)
     data = response.json()
+    print('Received product JSON response', data)
     assert data is not None
     return data
 

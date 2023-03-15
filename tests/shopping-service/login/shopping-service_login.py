@@ -23,6 +23,7 @@ def execute(user):
     )
     print('Received login response', response)
     data = response.json()
+    print('Received login JSON response', data)
     assert data is not None
     access_token = data.get('token', None)
     assert access_token is not None

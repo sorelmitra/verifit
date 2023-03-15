@@ -46,6 +46,7 @@ def when_fetch_cart(shopping_driver_name):
     )
     print('Received REST post response', response)
     data = response.json()
+    print('Received REST post JSON response', data)
     assert data is not None
     set_env('cart_data')(data)
 
