@@ -10,7 +10,7 @@ get_env = get_store_reader()
 
 def execute(user):
     url = get_env('SHOPPING_SERVICE_LOGIN_ENDPOINT')
-    print('Logging in user in to shopping server', user)
+    print(f"Logging in user in to {url}", user)
     response = requests.post(
         url=url,
         data=json.dumps({
@@ -21,9 +21,9 @@ def execute(user):
             'Content-Type': 'application/json'
         },
     )
-    print('Received login response', response)
+    print(f"Received login response from {url}", response)
     data = response.json()
-    print('Received login JSON response', data)
+    print(f"Received login JSON response from {url}", data)
     assert data is not None
     access_token = data.get('token', None)
     assert access_token is not None

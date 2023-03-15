@@ -22,7 +22,7 @@ def execute(post_id):
     }
     print(f"Posting via Post-Service-2 to {url}", variables)
     response = client.execute(query, variables)
-    print('Received GraphQL post response', response)
+    print(f"Received GraphQL post response from {url}", response)
     data = response.get('data', None)
     assert data is not None
     post = data.get('post')

@@ -8,7 +8,7 @@ get_env = get_store_reader()
 
 def execute(an_id):
     url = f"{get_env('SHOPPING_SERVICE_URL')}/products/{an_id}"
-    print('Getting product from shopping server', an_id)
+    print(f"Getting product from {url}", an_id)
     response = requests.get(
         url=url,
         headers={
@@ -16,9 +16,9 @@ def execute(an_id):
             'Authorization': get_bearer_authorization_header_value()
         },
     )
-    print('Received product response', response)
+    print(f"Received product response from {url}", response)
     data = response.json()
-    print('Received product JSON response', data)
+    print(f"Received product JSON response from {url}", data)
     assert data is not None
     return data
 

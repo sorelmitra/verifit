@@ -22,9 +22,9 @@ def execute(post_id):
             'Content-Type': 'application/json'
         },
     )
-    print('Received REST post response', response)
+    print(f"Received REST post response from {url}", response)
     data = response.json()
-    print('Received REST post JSON response', data)
+    print(f"Received REST post JSON response from {url}", data)
     assert data is not None
     return {
         "id": data.get('userId', None),

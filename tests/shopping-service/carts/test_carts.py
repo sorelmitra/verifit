@@ -36,7 +36,7 @@ def when_fetch_cart(shopping_driver_name):
     login_main_user_from_cache(shopping_driver_name)
     cart_id = get_env('cart_id')
     url = f"{get_env('SHOPPING_SERVICE_URL')}/products/{cart_id}"
-    print(f"Getting product {cart_id} from shopping server")
+    print(f"Getting product {cart_id} from {url}")
     response = requests.get(
         url=url,
         headers={
@@ -44,9 +44,9 @@ def when_fetch_cart(shopping_driver_name):
             'Authorization': get_bearer_authorization_header_value()
         },
     )
-    print('Received REST post response', response)
+    print(f"Received REST post response from {url}", response)
     data = response.json()
-    print('Received REST post JSON response', data)
+    print(f"Received REST post JSON response from {url}", data)
     assert data is not None
     set_env('cart_data')(data)
 
