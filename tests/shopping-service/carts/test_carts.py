@@ -44,6 +44,7 @@ def when_fetch_cart(shopping_driver_name):
             'Authorization': get_bearer_authorization_header_value()
         },
     )
+    print('Received REST post response', response)
     data = response.json()
     assert data is not None
     set_env('cart_data')(data)

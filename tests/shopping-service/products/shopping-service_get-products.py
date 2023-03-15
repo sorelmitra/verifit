@@ -16,8 +16,8 @@ def execute(an_id):
             'Authorization': get_bearer_authorization_header_value()
         },
     )
+    print('Received product response', response)
     data = response.json()
-    print('Received product response', data)
     assert data is not None
     return data
 

@@ -6,7 +6,8 @@ get_env = get_store_reader()
 
 
 def execute(post_id):
-    client = GraphqlClient(endpoint=get_env('POST_SERVICE_2_URL'))
+    url = get_env('POST_SERVICE_2_URL')
+    client = GraphqlClient(endpoint=url)
     query = """
         query GET_POST($id: ID!) {
           post(id: $id) {
@@ -17,9 +18,9 @@ def execute(post_id):
         }
     """
     variables = {
-      "id": post_id
+        "id": post_id
     }
-    print('Posting via Post-Service-2', variables)
+    print(f"Posting via Post-Service-2 to {url}", variables)
     response = client.execute(query, variables)
     print('Received GraphQL post response', response)
     data = response.get('data', None)
