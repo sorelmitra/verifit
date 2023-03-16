@@ -133,9 +133,11 @@ Now the framework will skip `test_another_stuff` if the driver is for UI, and in
 
 We have a bunch of test suites that you can inspire from.  Each suite tests an imaginary service, which is either an online dummy one, either a dummy shell command. 
 
-1. **Post-Service**.  This one can post to a particular server via a driver.  Each driver connects to the server it can talk to, and makes sure the returned data has the same format in order for the test to function.  We have the following drivers:
-   - `post-service-1` that connects to a REST API.
-   - `post-service-2` that connects to a GraphQL API.
+1. **Post-Service**.  This one can "post" to a particular server via a driver.  Each driver connects to the server it can talk to, and makes sure the returned data has the same format in order for the test to function.  Here we showcase:
+   - Using multiple drivers:
+      - `post-service-1` that connects to a REST API.
+      - `post-service-2` that connects to a GraphQL API.
+   - Ignoring a test for a particular driver, namely `test_post_second`.
 2. **Echo-Service**.  It sends a message to a Web-Sockets server and gives back the response.  In our case, the dummy WSS server echoes back whatever we're sending, so the test verifies this.
 3. **Shopping-Service**.  This test shows multiple features:
    - Login and get an access token.  (`test_login.py`)
@@ -154,12 +156,11 @@ pip install -r requirements.txt
 pytest .
 ```
 
-More example commands:
+Selecting which tests to run:
 
 - Run only tests that are related to posts and shopping: `pytest post-service shopping-service`.
 - Run the posts tests only with the first driver: `POST_DRIVER='post-service-1' pytest post-service`.
-- Run the posts tests with all drivers explicitly: `POST_DRIVER='post-service-1,post-service-2' pytest post-service`.
-   - **Note**: In our case, this is the same as not specifying `POST_DRIVER` at all.  _However_, this is a useful pattern in case you have N>2 drivers and want to run just a few of them.
+- Run the posts tests with multiple drivers explicitly set: `POST_DRIVER='post-service-1,post-service-2' pytest post-service`.
 
 ## 4. Write Some Tests
 
@@ -218,6 +219,14 @@ The entire library is coded using Functional Programming principles.  Thus, you 
 We have already shown a few practical steps for how to use drivers, in the above section for [preparing drivers](#2-prepare-a-conftest-file-with-driver-names).
 
 Here, we go into more details on how this works.  We explain how the sample shopping test & driver are implemented, with respect to login.
+
+Side note on drivers & PyTest:
+
+- The driver mechanism is tied to PyTest parameterized fixtures, because they fit our purpose nicely, allowing you to select your drivers at runtime, as well as providing defaults.
+- Also, if we wanted to implement our own mechanism for driver-based testing, independent of a test runner, things would've got much more complicated, as we:
+    - Would reinvent the wheel and write a lot of code to duplicate functionality that's common in test runners.
+    - Would require you to run the tests in awkward ways, by wrapping test runner commands in scripts we would provide.
+- Thus, we chose not to take this path, and instead coach you on how to use PyTest in order to achieve this.  We do provide the most important functionality, however, which is finding and importing the driver code.
 
 So we want to log in from the tests to our shopping service using the endpoint that the latter offers.  For now, we only have one endpoint for this, but assuming we later might add another one, or that we will be adding UI on top of this, we want to use drivers in order to have the flexibility of using the new endpoint or the UI, without changing the test.
 
