@@ -12,10 +12,11 @@ IGNORE_LIST = 'ignoreList'
 
 
 def ws_send_and_receive(config):
-    log_type = "[WebSockets]"
-    wait_ms = int(get_env('WEBSOCKETS_WAIT_MS'))
     server = config.get(SERVER)
     ignore_list = config.get(IGNORE_LIST)
+
+    log_type = "[WebSockets]"
+    wait_ms = int(get_env('WEBSOCKETS_WAIT_MS'))
 
     def with_data(data):
         async def receive_async():
