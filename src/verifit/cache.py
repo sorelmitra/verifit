@@ -22,11 +22,13 @@ def cache_write(cache):
         json.dump(cache, f, indent=2)
 
 
-def cache_set(key, value):
-    cache = cache_read()
-    cache[key] = value
-    cache_write(cache)
-    return value
+def cache_set(key):
+    def with_value(value):
+        cache = cache_read()
+        cache[key] = value
+        cache_write(cache)
+        return value
+    return with_value
 
 
 def cache_get(key):
@@ -34,23 +36,28 @@ def cache_get(key):
     return cache.get(key, None)
 
 
-def retrieve_and_cache(retrieve_func):
-    def with_arguments(args=None):
-        def with_key(key):
-            def with_describer(describe_func):
-                resp = cache_get(key)
-                if resp is None:
-                    print(f"Cache miss key <{key}>")
-                    if args is None:
-                        retrieve_result = retrieve_func()
-                    else:
-                        retrieve_result = retrieve_func(args)
-                    cache_set(key, retrieve_result)
-                else:
-                    print(f"Cache hit key <{key}>")
-                resp = cache_get(key)
-                print(f"{key}: {describe_func(resp)}")
-                return resp
-            return with_describer
-        return with_key
-    return with_arguments
+KEY = 'key'
+ARG = 'arg'
+DESCRIBE_FUNC = 'describeFunc'
+
+
+def retrieve_and_cache(config):
+    key = config.get(KEY)
+    arg = config.get(ARG)
+    describe_func = config.get(DESCRIBE_FUNC)
+    
+    def with_func(func):
+        resp = cache_get(key)
+        if resp is None:
+            print(f"Cache miss key <{key}>")
+            if arg is None:
+                retrieve_result = func()
+            else:
+                retrieve_result = func(arg)
+            cache_set(key)(retrieve_result)
+        else:
+            print(f"Cache hit key <{key}>")
+        resp = cache_get(key)
+        print(f"{key}: {describe_func(resp)}")
+        return resp
+    return with_func

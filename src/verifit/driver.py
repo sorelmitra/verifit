@@ -16,11 +16,13 @@ def get_marker(request):
     return with_value
 
 
-def get_driver_params(env_var, default_values):
-    requested_drivers = get_env(env_var)
-    if requested_drivers is not None:
-        return requested_drivers.split(',')
-    return default_values
+def get_driver_params(env_var):
+    def with_default_values(default_values):
+        requested_drivers = get_env(env_var)
+        if requested_drivers is not None:
+            return requested_drivers.split(',')
+        return default_values
+    return with_default_values
 
 
 def get_driver_name(request):

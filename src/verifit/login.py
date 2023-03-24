@@ -80,7 +80,7 @@ def login(user):
         access_token = driver(user)
         decoded_token = decode_token(access_token)
         token_expiry_date = get_token_expiration_date(decoded_token)
-        cache_set(get_login_user_name(user), {
+        cache_set(get_login_user_name(user))({
             'accessToken': access_token,
             'expiryDate': token_expiry_date.isoformat()
         })

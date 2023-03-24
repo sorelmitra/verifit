@@ -83,12 +83,12 @@ import pytest
 from src.lib.driver import get_driver_params, get_driver_name
 
 
-@pytest.fixture(params=get_driver_params('MY_DRIVER', ['my-service-rest', 'my-service-graphql', 'my-service-ui']))
+@pytest.fixture(params=get_driver_params('MY_DRIVER')(['my-service-rest', 'my-service-graphql', 'my-service-ui']))
 def my_driver_name(request):
     return get_driver_name(request)
 
 
-@pytest.fixture(params=get_driver_params('MY_SECOND_DRIVER', ['my-second-service-v1', 'my-second-service-v2', 'my-second-service-v3', 'my-second-service-v4']))
+@pytest.fixture(params=get_driver_params('MY_SECOND_DRIVER')(['my-second-service-v1', 'my-second-service-v2', 'my-second-service-v3', 'my-second-service-v4']))
 def my_second_driver_name(request):
     return get_driver_name(request)
 ```
@@ -235,7 +235,7 @@ To achieve this, first define in `conftest.py` a parameterized PyTest fixture li
 ```python
 import pytest
 from verifit.driver import get_driver_params, get_driver_name
-@pytest.fixture(params=get_driver_params('SHOPPING_DRIVER', ['shopping-service']))  # (1)
+@pytest.fixture(params=get_driver_params('SHOPPING_DRIVER')(['shopping-service']))  # (1)
 def shopping_driver(request):
     return get_driver_name(request)  # (2)
 ```
