@@ -1,5 +1,7 @@
 import json
 
+from verifit.prop import get_prop
+
 from .config import get_store_reader
 
 
@@ -33,7 +35,7 @@ def cache_set(key):
 
 def cache_get(key):
     cache = cache_read()
-    return cache.get(key, None)
+    return get_prop(cache)(key)
 
 
 KEY = 'key'

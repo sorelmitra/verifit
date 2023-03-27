@@ -3,7 +3,8 @@ import json
 import requests
 
 from verifit.config import get_store_reader
-from verifit.login import get_login_user_name, get_login_user_password
+from verifit.login import PASSWORD, USERNAME
+from verifit.prop import get_prop
 
 get_env = get_store_reader()
 
@@ -14,8 +15,8 @@ def execute(user):
     response = requests.post(
         url=url,
         data=json.dumps({
-            'username': get_login_user_name(user),
-            'password': get_login_user_password(user),
+            'username': get_prop(user)(USERNAME),
+            'password': get_prop(user)(PASSWORD),
         }),
         headers={
             'Content-Type': 'application/json'

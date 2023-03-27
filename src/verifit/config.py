@@ -2,6 +2,8 @@ import os
 
 from dotenv import dotenv_values
 
+from verifit.prop import get_prop
+
 from .memoize import create_memoizer
 
 
@@ -22,7 +24,7 @@ def get_store_reader():
     store = memoize()
 
     def get_env(key):
-        return store.get(key, None)
+        return get_prop(store)(key)
 
     return get_env
 

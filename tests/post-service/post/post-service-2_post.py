@@ -1,13 +1,14 @@
 from python_graphql_client import GraphqlClient
 
 from verifit.config import get_store_reader
+from verifit.login import get_bearer_auth_base
 
 get_env = get_store_reader()
 
 
 def execute(post_id):
     url = get_env('POST_SERVICE_2_URL')
-    client = GraphqlClient(endpoint=url)
+    client = GraphqlClient(endpoint=url, auth=get_bearer_auth_base())
     query = """
         query GET_POST($id: ID!) {
           post(id: $id) {

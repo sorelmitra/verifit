@@ -2,6 +2,8 @@ from datetime import datetime
 
 from requests.auth import AuthBase
 
+from verifit.prop import get_prop
+
 from .driver import get_driver
 
 from .cache import cache_set, cache_get
@@ -20,15 +22,7 @@ PASSWORD = 'password'
 
 
 def get_expiry_date(login_data):
-    return datetime.fromisoformat(login_data.get(EXPIRY_DATE, None))
-
-
-def get_login_user_name(user):
-    return user.get(USERNAME, None)
-
-
-def get_login_user_password(user):
-    return user.get(PASSWORD, None)
+    return datetime.fromisoformat(get_prop(login_data)(EXPIRY_DATE))
 
 
 def login(user):
@@ -40,7 +34,7 @@ def login(user):
             ACCESS_TOKEN: access_token,
             EXPIRY_DATE: token_expiry_date.isoformat()
         }
-        cache_set(get_login_user_name(user))(login_data)
+        cache_set(get_prop(user)(USERNAME))(login_data)
         set_env(LOGIN_DATA)(login_data)
         return login_data
     return with_driver
@@ -72,14 +66,15 @@ def get_login_values_from_cache(username):
         return None
     print(f"Cache hit key <{username}>")
     login_data = {
-        ACCESS_TOKEN: user_cached_data.get(ACCESS_TOKEN, None),
+        ACCESS_TOKEN: get_prop(user_cached_data)(ACCESS_TOKEN),
         EXPIRY_DATE: token_expiry_date
     }
+    return login_data
 
 
 def login_from_cache(user):
     def with_driver(driver):
-        login_data = get_login_values_from_cache(get_login_user_name(user))
+        login_data = get_login_values_from_cache(get_prop(user)(USERNAME))
         if login_data is None:
             login_data = login(user)(driver)
         print(f"Caching login data <{login_data}>")
@@ -91,7 +86,7 @@ def login_from_cache(user):
 def get_bearer_authorization_header_value():
     login_data = get_env(LOGIN_DATA)
     print(f"Using cached login data <{login_data}>")
-    return f"Bearer {login_data.get(ACCESS_TOKEN, None)}"
+    return f"Bearer {get_prop(login_data)(ACCESS_TOKEN)}"
 
 
 def get_bearer_auth_base():
@@ -103,4 +98,5 @@ def get_bearer_auth_base():
             r.headers["authorization"] = "Bearer " + self.token
             return r
 
-    return BearerAuth(get_access_token_from_env())
+    login_data = get_env(LOGIN_DATA)
+    return BearerAuth(get_prop(login_data)(ACCESS_TOKEN))
