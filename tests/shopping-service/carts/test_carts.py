@@ -1,9 +1,8 @@
-import pytest
-import requests
 from pytest_bdd import given, parsers, scenario, when, then
 
 from verifit.config import get_store_reader, get_store_writer
-from verifit.login import get_bearer_authorization_header_value, login_main_user_from_cache
+from verifit.login import login_main_user_from_cache
+from verifit.retrieve import LOG_PREFIX, retrieveHttp
 
 get_env = get_store_reader()
 set_env = get_store_writer()
@@ -36,17 +35,9 @@ def when_fetch_cart(shopping_driver_name):
     login_main_user_from_cache(shopping_driver_name)
     cart_id = get_env('cart_id')
     url = f"{get_env('SHOPPING_SERVICE_URL')}/products/{cart_id}"
-    print(f"Getting product {cart_id} from {url}")
-    response = requests.get(
-        url=url,
-        headers={
-            'Content-Type': 'application/json',
-            'Authorization': get_bearer_authorization_header_value()
-        },
-    )
-    print(f"Received REST post response from {url}", response)
-    data = response.json()
-    print(f"Received REST post JSON response from {url}", data)
+    data = retrieveHttp(url)({
+        LOG_PREFIX: f"Get cart product {cart_id}",
+    })
     assert data is not None
     set_env('cart_data')(data)
 

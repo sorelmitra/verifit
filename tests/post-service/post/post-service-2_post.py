@@ -1,29 +1,26 @@
-from python_graphql_client import GraphqlClient
-
 from verifit.config import get_store_reader
-from verifit.login import get_bearer_auth_base
+from verifit.retrieve import LOG_PREFIX, QUERY, VARIABLES, retrieveGraphQl
 
 get_env = get_store_reader()
 
 
 def execute(post_id):
     url = get_env('POST_SERVICE_2_URL')
-    client = GraphqlClient(endpoint=url, auth=get_bearer_auth_base())
-    query = """
-        query GET_POST($id: ID!) {
-          post(id: $id) {
-            id
-            title
-            body
+    response = retrieveGraphQl(url)({
+      QUERY: """
+          query GET_POST($id: ID!) {
+            post(id: $id) {
+              id
+              title
+              body
+            }
           }
-        }
-    """
-    variables = {
-        "id": post_id
-    }
-    print(f"Posting via Post-Service-2 to {url}", variables)
-    response = client.execute(query, variables)
-    print(f"Received GraphQL post response from {url}", response)
+      """,
+      VARIABLES: {
+          "id": post_id
+      },
+      LOG_PREFIX: 'Post via Post-Service-2',
+    })
     data = response.get('data', None)
     assert data is not None
     post = data.get('post')

@@ -1,8 +1,6 @@
-import json
-
 import requests
-
 from verifit.config import get_store_reader
+from verifit.retrieve import LOG_PREFIX, METHOD, PAYLOAD, retrieveHttp
 
 get_env = get_store_reader()
 
@@ -14,17 +12,11 @@ def execute(post_id):
       "title": "test post",
       "body": "test post body"
     }
-    print(f"Posting via Post-Service-1 to {url}", payload)
-    response = requests.post(
-        url=url,
-        data=json.dumps(payload),
-        headers={
-            'Content-Type': 'application/json'
-        },
-    )
-    print(f"Received REST post response from {url}", response)
-    data = response.json()
-    print(f"Received REST post JSON response from {url}", data)
+    data = retrieveHttp(url)({
+        METHOD: requests.post,
+        LOG_PREFIX: 'Post via Post-Service-1',
+        PAYLOAD: payload,
+    })
     assert data is not None
     return {
         "id": data.get('userId', None),
