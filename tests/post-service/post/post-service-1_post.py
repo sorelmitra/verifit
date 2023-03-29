@@ -1,6 +1,6 @@
 import requests
 from verifit.config import get_store_reader
-from verifit.retrieve import LOG_PREFIX, METHOD, PAYLOAD, retrieveHttp
+from verifit.retrieve import AUTHORIZE, LOG_PREFIX, METHOD, PAYLOAD, retrieveHttp
 
 get_env = get_store_reader()
 
@@ -16,6 +16,7 @@ def execute(post_id):
         METHOD: requests.post,
         LOG_PREFIX: 'Post via Post-Service-1',
         PAYLOAD: payload,
+        AUTHORIZE: True,
     })
     assert data is not None
     return {

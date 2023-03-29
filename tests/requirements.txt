@@ -1,4 +1,4 @@
-verifit >= 1.0.22
+verifit >= 1.0.23
 
 PyJWT
 pytest
