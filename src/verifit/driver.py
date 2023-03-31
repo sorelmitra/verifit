@@ -1,4 +1,4 @@
-import importlib
+import re
 
 import pytest
 
@@ -36,8 +36,14 @@ def get_driver_name(request):
     return request.param
 
 
-def get_driver(name):
-    def with_functionality(functionality_name):
-        functionality = f"{name}_{functionality_name}"
-        return importlib.import_module(functionality).execute
-    return with_functionality
+def select_driver(driver_name):
+    def with_drivers(drivers):
+        for driver in drivers:
+            if re.match(rf"driver.+{driver_name}", driver.__name__) is None:
+                continue
+            return driver
+        raise Exception(f"Could not find driver with name <{driver_name}>" + \
+            ' in the list of drivers:\n' + \
+            '\n'.join(map(lambda d: d.__name__, drivers)) + \
+            '\n')
+    return with_drivers

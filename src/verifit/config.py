@@ -2,8 +2,7 @@ import os
 
 from dotenv import dotenv_values
 
-from verifit.prop import get_prop
-
+from .prop import get_prop
 from .memoize import create_memoizer
 
 

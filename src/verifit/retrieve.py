@@ -2,7 +2,7 @@ import json
 import requests
 from python_graphql_client import GraphqlClient
 
-from verifit.login import get_bearer_auth_base, get_bearer_authorization_header_value
+from .login import get_bearer_auth_base, get_bearer_authorization_header_value
 
 
 QUERY = 'query'

@@ -1,13 +1,13 @@
 import pytest
 
-from verifit.driver import get_driver_name, get_driver_params
+from verifit.driver import get_driver_name, get_driver_params, select_driver
 
 
-@pytest.fixture(params=get_driver_params('POST_DRIVER')(['post-service-1', 'post-service-2']))
-def post_driver_name(request):
-    return get_driver_name(request)
+@pytest.fixture(params=get_driver_params('POST_DRIVER')(['bar', 'baz']))
+def select_current_post_driver(request):
+    return select_driver(get_driver_name(request))
 
 
-@pytest.fixture(params=get_driver_params('SHOPPING_DRIVER')(['shopping-service']))
-def shopping_driver_name(request):
-    return get_driver_name(request)
+@pytest.fixture(params=get_driver_params('SHOPPING_DRIVER')(['foo']))
+def select_current_shopping_driver(request):
+    return select_driver(get_driver_name(request))

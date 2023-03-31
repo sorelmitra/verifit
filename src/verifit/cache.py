@@ -1,7 +1,6 @@
 import json
 
-from verifit.prop import get_prop
-
+from .prop import get_prop
 from .config import get_store_reader
 
 

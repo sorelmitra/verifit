@@ -1,8 +1,10 @@
 from pytest_bdd import given, parsers, scenario, when, then
 
 from verifit.config import get_store_reader, get_store_writer
-from verifit.login import login_main_user_from_cache
-from verifit.retrieve import LOG_PREFIX, retrieveHttp
+from verifit.login import DRIVER, USER, login_from_cache
+
+from login_before_test import get_main_user, login_before_test
+from driver_get_carts_all import all_get_carts_drivers
 
 get_env = get_store_reader()
 set_env = get_store_writer()
@@ -14,7 +16,7 @@ set_env = get_store_writer()
 # This function is not actually called, anything you put into it
 # is ignored.
 @scenario('carts.feature', 'Get a cart')
-def test_carts(shopping_driver_name):
+def test_carts(select_current_shopping_driver):
     pass
 
 
@@ -31,15 +33,10 @@ def given_cart_id(cart_id):
 @when(
     parsers.re(r"I fetch this cart"),
 )
-def when_fetch_cart(shopping_driver_name):
-    login_main_user_from_cache(shopping_driver_name)
-    cart_id = get_env('cart_id')
-    url = f"{get_env('SHOPPING_SERVICE_URL')}/products/{cart_id}"
-    data = retrieveHttp(url)({
-        LOG_PREFIX: f"Get cart product {cart_id}",
-    })
-    assert data is not None
-    set_env('cart_data')(data)
+def when_fetch_cart(select_current_shopping_driver):
+    login_from_cache({USER: get_main_user(), DRIVER: login_before_test})
+    get_carts_driver = select_current_shopping_driver(all_get_carts_drivers())
+    set_env('cart_data')(get_carts_driver(get_env('cart_id')))
 
 
 @then(

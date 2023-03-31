@@ -4,7 +4,7 @@ from verifit.retrieve import LOG_PREFIX, QUERY, VARIABLES, retrieveGraphQl
 get_env = get_store_reader()
 
 
-def execute(post_id):
+def driver_post_baz(post_id):
     url = get_env('POST_SERVICE_2_URL')
     response = retrieveGraphQl(url)({
       QUERY: """

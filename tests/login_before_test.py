@@ -1,5 +1,3 @@
-import json
-
 import requests
 
 from verifit.config import get_store_reader
@@ -10,7 +8,17 @@ from verifit.retrieve import LOG_PREFIX, METHOD, PAYLOAD, retrieveHttp
 get_env = get_store_reader()
 
 
-def execute(user):
+def get_main_user():
+    user_type = 'MAIN'
+    username = get_env(f"SHOPPING_SERVICE_{user_type}_USER_NAME")
+    password = get_env(f"SHOPPING_SERVICE_{user_type}_USER_PASSWORD")
+    return {
+        USERNAME: username,
+        PASSWORD: password,
+    }
+
+
+def login_before_test(user):
     url = get_env('SHOPPING_SERVICE_LOGIN_ENDPOINT')
     data = retrieveHttp(url)({
         METHOD: requests.post,

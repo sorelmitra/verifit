@@ -5,7 +5,7 @@ from verifit.retrieve import AUTHORIZE, LOG_PREFIX, METHOD, PAYLOAD, retrieveHtt
 get_env = get_store_reader()
 
 
-def execute(post_id):
+def driver_post_bar(post_id):
     url = f"{get_env('POST_SERVICE_1_URL')}/posts"
     payload = {
       "userId": post_id,

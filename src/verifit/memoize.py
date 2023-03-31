@@ -1,4 +1,4 @@
-from verifit.prop import get_prop
+from .prop import get_prop
 
 
 def create_memoizer(func):
