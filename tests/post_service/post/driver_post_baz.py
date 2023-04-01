@@ -1,12 +1,12 @@
 from verifit.config import get_store_reader
-from verifit.retrieve import LOG_PREFIX, QUERY, VARIABLES, retrieveGraphQl
+from verifit.retrieve import LOG_PREFIX, QUERY, VARIABLES, retrieve_graphql
 
 get_env = get_store_reader()
 
 
 def driver_post_baz(post_id):
     url = get_env('POST_SERVICE_2_URL')
-    response = retrieveGraphQl(url)({
+    response = retrieve_graphql(url)({
       QUERY: """
           query GET_POST($id: ID!) {
             post(id: $id) {

@@ -6,8 +6,8 @@ from verifit.login import ACCESS_TOKEN, EXPIRY_DATE, LOGIN_DATA
 
 from driver_post_all import all_post_drivers
 
-
 set_env = get_store_writer()
+
 
 def simulate_login():
     # We're simulating login because our test GraphQL server doesn't have

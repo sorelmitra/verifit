@@ -1,8 +1,9 @@
-verifit >= 2.0.0
+verifit >= 2.0.1
 
 PyJWT
 pytest
 pytest-bdd
+pytest-mock
 python-dotenv
 python_graphql_client
 requests

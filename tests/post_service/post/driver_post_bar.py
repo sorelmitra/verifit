@@ -1,6 +1,6 @@
 import requests
 from verifit.config import get_store_reader
-from verifit.retrieve import AUTHORIZE, LOG_PREFIX, METHOD, PAYLOAD, retrieveHttp
+from verifit.retrieve import AUTHORIZE, LOG_PREFIX, METHOD, PAYLOAD, retrieve_http
 
 get_env = get_store_reader()
 
@@ -12,7 +12,7 @@ def driver_post_bar(post_id):
       "title": "test post",
       "body": "test post body"
     }
-    data = retrieveHttp(url)({
+    data = retrieve_http(url)({
         METHOD: requests.post,
         LOG_PREFIX: 'Post via Post-Service-1',
         PAYLOAD: payload,

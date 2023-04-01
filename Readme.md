@@ -139,7 +139,7 @@ The entire library is coded using Functional Programming principles.  Thus, you 
 - `config.py`.  Loads configuration via `dotenv` package, and returns a memoized store for getting/setting values across tests.
 - `date_diff.py`.  Simple date diff.
 - `driver.py`.  This one provides a few utilities:
-  * `select_driver` selects a driver function based on name, from a list of function objects that you provide.  It expects the names of the function objects to follow the pattern `driver.+{driver_name}`.  It returns the found function, or raises an exception if it fails to find one.
+  * `select_driver` selects a driver function based on name, from a list of function objects that you provide.  It expects the names of the function objects to follow the pattern `driver.+{driver_name}`.  It returns the found function, or raises an exception if it fails to find one.  **Note** that if you have a driver named `bar` and another driver named `foo_bar`, this function will throw an exception because it cannot differentiate between the two.
   * `get_driver_params` returns the driver names as defined either in an environment variable, either by a default list of names.
   * `get_driver_name` returns the current driver name as injected by PyTest from the driver names returned by `get_driver_params`.
 - `json_web_token.py`.  Decoding and extracting data from a JWT.

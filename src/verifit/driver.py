@@ -38,10 +38,14 @@ def get_driver_name(request):
 
 def select_driver(driver_name):
     def with_drivers(drivers):
+        matched_driver = None
         for driver in drivers:
-            if re.match(rf"driver.+{driver_name}", driver.__name__) is None:
-                continue
-            return driver
+            if re.match(rf"driver.+{driver_name}", driver.__name__) is not None:
+                if matched_driver is not None:
+                    raise Exception(f"More than one driver matches <{driver_name}>: <{matched_driver.__name__}>, and <{driver.__name__}>")
+                matched_driver = driver
+        if matched_driver is not None:
+            return matched_driver
         raise Exception(f"Could not find driver with name <{driver_name}>" + \
             ' in the list of drivers:\n' + \
             '\n'.join(map(lambda d: d.__name__, drivers)) + \
