@@ -32,7 +32,7 @@ def login(config):
         ACCESS_TOKEN: access_token,
         EXPIRY_DATE: token_expiry_date.isoformat()
     }
-    cache_set(get_prop(config[USER])(USERNAME))(login_data)
+    cache_set(config[USER][USERNAME])(login_data)
     set_env(LOGIN_DATA)(login_data)
     return login_data
 

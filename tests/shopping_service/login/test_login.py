@@ -1,16 +1,18 @@
 from datetime import datetime
 
+from verifit.config import get_store_reader
 from verifit.date_diff import date_diff_in_minutes
-from verifit.login import DRIVER, USER, get_expiry_date, login
+from verifit.login import USER, DRIVER, get_expiry_date, login
 
-from driver_get_user_all import all_get_user_drivers
-from driver_login_all import all_login_drivers
+from tests.shopping_service.login.shopping_service_login import shopping_login, shopping_get_main_user
+
+get_env = get_store_reader()
 
 
-def test_login_main_user(select_current_shopping_driver):
-    get_user_driver = select_current_shopping_driver(all_get_user_drivers())
-    user = get_user_driver('MAIN')
-    login_driver = select_current_shopping_driver(all_login_drivers())
-    login_data = login({USER: user, DRIVER: login_driver})
+def test_login_main_user():
+    login_data = login({
+        USER: shopping_get_main_user(),
+        DRIVER: shopping_login,
+    })
     minutes = date_diff_in_minutes(get_expiry_date(login_data))(datetime.now())
     assert 58 < minutes < 61

@@ -1,1 +1,1 @@
-from . import login_before_test
+# We need this in order for the local imports to work in tests

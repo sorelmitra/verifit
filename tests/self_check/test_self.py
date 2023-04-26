@@ -10,7 +10,7 @@ set_env = get_store_writer()
 
 
 def test_cache():
-    DUMMY = 'dummy'
+    dummy = 'dummy'
     called = False
 
     def dummy_func(arg):
@@ -19,13 +19,13 @@ def test_cache():
         return f"{arg} func"
 
     retrieve_dummy = retrieve_and_cache(config={
-        KEY: DUMMY,
-        ARG: 'dummy',
+        KEY: dummy,
+        ARG: dummy,
         DESCRIBE_FUNC: lambda dummy_data : f"I'm describing {dummy_data}",
     })
 
-    cache_set(DUMMY)(None)
-    assert cache_get(DUMMY) is None
+    cache_set(dummy)(None)
+    assert cache_get(dummy) is None
     value = retrieve_dummy(func=dummy_func)
     assert value == 'dummy func'
     assert called
@@ -92,18 +92,18 @@ def test_retrieve_custom_headers(mocker):
 def test_driver_names():
     def driver_stuff_foo():
         pass
-    
+
     def driver_stuff_bar():
         pass
-    
+
     def driver_stuff_baz():
         pass
-    
+
     def driver_stuff_foo_bar():
-        pass 
-    
+        pass
+
     drivers = [driver_stuff_foo, driver_stuff_bar, driver_stuff_baz]
-    
+
     assert select_driver('foo')(drivers) == driver_stuff_foo
     assert select_driver('bar')(drivers) == driver_stuff_bar
     with pytest.raises(Exception, match='Could not find driver'):

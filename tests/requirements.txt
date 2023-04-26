@@ -1,4 +1,4 @@
-verifit >= 2.0.1
+verifit >= 3.0.0
 
 PyJWT
 pytest
