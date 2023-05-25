@@ -80,24 +80,56 @@ The sample tests use dummy online services or commands in order to show how to t
 
 1. `post_service/post/test_post.py`. Tests simple APIs using HTTP and GraphQL servers.
 
-2. `shopping_service/login/test_login.py`. Here we test log in to a server.
+2. `post_service/drivers/test_post_via_drivers.py`. The same as `test_post.py`, but showcasing using different drivers.
 
-3. `shopping_service/login/test_products.py`. This one does the following:
+   If you need to run your tests through multiple channels, then it's best if you keep your tests unified, and add a couple of layers to help directing the tests through the right channel.
+
+    Assume you need to 'Post' items via two channels, 'foo', and 'bar'.  The layers would be:
+    
+    1. Test declaration
+    	- Does the actual testing, 'Posting' an item and verifying the result
+    	- Does not call directly to 'foo' or 'bar'
+    	- Calls to a Domain-Specific Language, aka DSL
+    2. DSL implementation
+    	- Based on the 'driver' parameter, it calls either to 'foo' or 'bar'
+    3. Drivers implementation
+    	- Each driver 'Posts' items in the way it knows
+    	- There is one driver implementation for each channel, i.e., 'foo' and 'bar'
+        - If 'bar' cannot 'Post' an item, then the corresponding driver is missing 
+
+    The files:
+
+    - `drivers.py` contains the list of our particular drivers
+    - The test itself is straightforward, as it imports the DSL, calls it, and verifies the result.  Note that the test is skipped for the 'bar' driver, because in our example, we are pretending that the 'bar' channel has no way to 'Post an item.
+    - `dsl_post.py`: The DSL uses the driver lib to call to the right driver from a driver map it provides.  In our case, the 'foo' driver is omitted from the map, because we know it cannot create an 'Item'.
+    - `driver_foo.py`: The 'foo' driver to 'Post' an item.  The 'bar' driver to 'Post' an item does not exist, as it cannot perform this action.
+
+    To run this test via the 'bar' driver, do this:
+
+    ```
+    DRIVER=bar pytest . -k 'post'
+    ```
+   
+    By default, `DRIVER` is `foo`.
+
+3. `shopping_service/login/test_login.py`. Here we test log in to a server.
+
+4. `shopping_service/login/test_products.py`. This one does the following:
 
    - Log in from cache.  This returns the cached token if it is valid, or logs in and caches the token before returning it.
    - Call to a private endpoint, passing in an authorization header with a cached access token.
 
-4. `shopping_service/login/test_carts.py`. It shows Gherkin features and BDD.
+5. `shopping_service/login/test_carts.py`. It shows Gherkin features and BDD.
 
-5. `echo_service/test_echo_service.py`.  Shows how to simplify testing WebSockets using our library.
+6. `echo_service/test_echo_service.py`.  Shows how to simplify testing WebSockets using our library.
 
     **Note**: As of _2023-04-26_, the online server that we were using for this sample test stopped accepting the API key that they provide.  As a result, we've marked this test as skipped.
 
-6. `date_service/test_date.py`.  Shows how to test CLI programs using this lib: it runs the shell command `date` with some arguments, and verifies the resulting output.
+7. `date_service/test_date.py`.  Shows how to test CLI programs using this lib: it runs the shell command `date` with some arguments, and verifies the resulting output.
 
-7. `self_check/test_self.py`.  Tests the lib itself.
+8. `self_check/test_self.py`.  Tests the lib itself.
 
-8. `kitchen_service/test_kitchen_service.py`.  Showcase doing a Web UI test using Cypress.IO and their kitchen sink sample page.
+9. `kitchen_service/test_kitchen_service.py`.  Showcase doing a Web UI test using Cypress.IO and their kitchen sink sample page.
 
 To prepare for running the sample tests that are included with this project, do this:
 
@@ -141,6 +173,10 @@ The entire library is coded using Functional Programming principles.  Thus, you 
 - `cache.py`.  Implements a simple cache, that is being stored in a file named `.<env>-cache.json` from the `tests` directory.
 - `config.py`.  Loads configuration via the `dotenv` package, and returns a unique store for getting/setting values across tests.
 - `date_diff.py`.  Simple date diff.
+- `driver.py`.  The driver lib is pretty simple:
+    - It gets the current driver from the environment
+    - It calls the corresponding function from a driver name / function dict
+    - It also offers a helper function to skip a test for a particular driver
 - `json_web_token.py`.  Decoding and extracting data from a JWT.
 - `login.py`.  Functions to:
     - Log in using a driver, which is a plain function.  We use a driver for this because logging in is particular to the API that each project has.  The driver does the actual call to the API endpoint for login, and returns the access token.  The framework caches the access token and its expiration date.
