@@ -176,7 +176,7 @@ The environment configuration is parsed using `dotenv`.  This automatically pars
 
 - `cache.py`.  Implements a simple cache, that is being stored in a file named `.<env>-cache.json` from the `tests` directory.
 - `config.py`.  Loads configuration via the `dotenv` package, and returns a unique store for getting/setting values across tests.
-- `date_diff.py`.  Simple date diff.
+- `date_tools.py`.  Some simple date tools.
 - `driver.py`.  The driver lib is pretty simple:
     - It gets the current driver from the environment
     - It calls the corresponding function from a driver name / function dict
