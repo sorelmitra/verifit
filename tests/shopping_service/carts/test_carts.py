@@ -1,8 +1,8 @@
 from pytest_bdd import given, parsers, scenario, when, then
 
 from verifit.config import get_store_reader, get_store_writer
-from verifit.login import DRIVER, USER, login_from_cache
-from verifit.retrieve import retrieve_http, LOG_PREFIX
+from verifit.login import login_from_cache
+from verifit.retrieve import retrieve_http
 
 from tests.shopping_service.login.shopping_service_login import shopping_get_main_user, shopping_login
 
@@ -27,12 +27,10 @@ def given_cart_id(cart_id):
     parsers.re(r"I fetch this cart"),
 )
 def when_fetch_cart():
-    login_from_cache({USER: shopping_get_main_user(), DRIVER: shopping_login})
+    login_from_cache(driver=shopping_login, **shopping_get_main_user())
     cart_id = get_env('cart_id')
     url = f"{get_env('SHOPPING_SERVICE_URL')}/products/{cart_id}"
-    data = retrieve_http(url)({
-        LOG_PREFIX: f"Get cart product {cart_id}",
-    })
+    data = retrieve_http(url=url, log_prefix=f"Get cart product {cart_id}")
     set_env('cart_data')(data)
 
 

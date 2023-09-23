@@ -163,10 +163,14 @@ The entire library is coded using Functional Programming principles.  Thus, you 
 
 - Pure functions, that return the same result given the same input, and that do not have side effects.
 - Immutability & disciplined state - functions do not alter state outside them, and there's no shared state between functions.
-- Currying - at most one argument for each function.
+- Currying - at most one argument for each function.  Note that we're using Python's built-in `kwargs` as the "single argument".
 - Higher-order functions - that return another function.
 - The memoize pattern used to make sure a single instance of a thing exists (in our case the config store).
 - No global variables, not even a singleton - memoize takes care of this.
+
+## Environment
+
+The environment configuration is parsed using `dotenv`.  This automatically parses `.<ENV>.env`, where `<ENV>` is the environment, by default `dev`.  In absence of this file, you can pass in the required configuration as environment variables, e.g.: `POST_SERVICE_1_URL=https://jsonplaceholder.typicode.com DRIVER=foo POST_SERVICE_2_URL=https://graphqlzero.almansi.me/api pytest . -k post`.
 
 ## Helpers
 

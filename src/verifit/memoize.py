@@ -1,11 +1,8 @@
-from .prop import get_prop
-
-
 def create_memoizer(func):
     func_result_cache = {}
 
     def memoize(arg=None):
-        cached_value = get_prop(func_result_cache)(arg)
+        cached_value = func_result_cache.get(arg)
         if cached_value is None:
             if arg is None:
                 func_result_cache[arg] = func()

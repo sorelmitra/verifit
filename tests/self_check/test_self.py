@@ -1,8 +1,7 @@
-import pytest
-from verifit.cache import ARG, KEY, DESCRIBE_FUNC, cache_get, cache_set, retrieve_and_cache
+from verifit.cache import cache_get, cache_set, retrieve_and_cache
 from verifit.config import get_store_reader, get_store_writer
 from verifit.login import ACCESS_TOKEN, LOGIN_DATA
-from verifit.retrieve import EXTRA_HEADERS, USE_DEFAULT_HEADERS, retrieve_http, METHOD, AUTHORIZE
+from verifit.retrieve import retrieve_http
 
 get_env = get_store_reader()
 set_env = get_store_writer()
@@ -17,11 +16,8 @@ def test_cache():
         called = True
         return f"{arg} func"
 
-    retrieve_dummy = retrieve_and_cache(config={
-        KEY: dummy,
-        ARG: dummy,
-        DESCRIBE_FUNC: lambda dummy_data : f"I'm describing {dummy_data}",
-    })
+    retrieve_dummy = retrieve_and_cache(key=dummy, arg=dummy,
+                                        describe_func=lambda dummy_data : f"I'm describing {dummy_data}")
 
     cache_set(dummy)(None)
     assert cache_get(dummy) is None
@@ -42,10 +38,7 @@ def test_retrieve_default_headers(mocker):
     }
     set_env(LOGIN_DATA)({ACCESS_TOKEN: 'x'})
     stub = mocker.stub(name='method')
-    retrieve_http('url')({
-        METHOD: stub,
-        AUTHORIZE: True,
-    })
+    retrieve_http(url='url', method=stub, use_auth=True)
     stub.assert_called_once_with(url='url', data=None, headers=expected_headers)
 
 
@@ -58,14 +51,11 @@ def test_retrieve_extra_headers(mocker):
     }
     set_env(LOGIN_DATA)({ACCESS_TOKEN: 'x'})
     stub = mocker.stub(name='method')
-    retrieve_http('url')({
-        METHOD: stub,
-        AUTHORIZE: True,
-        EXTRA_HEADERS: {
-            'X1': 'x',
-            'X2': 'y'
-        }
-    })
+    retrieve_http(url='url', method=stub, use_auth=True,
+                  extra_headers={
+                      'X1': 'x',
+                      'X2': 'y'
+                  })
     stub.assert_called_once_with(url='url', data=None, headers=expected_headers)
 
 
@@ -76,15 +66,11 @@ def test_retrieve_custom_headers(mocker):
     }
     set_env(LOGIN_DATA)({ACCESS_TOKEN: 'x'})
     stub = mocker.stub(name='method')
-    retrieve_http('url')({
-        METHOD: stub,
-        AUTHORIZE: True,
-        USE_DEFAULT_HEADERS: False,
-        EXTRA_HEADERS: {
-            'X1': 'x',
-            'X2': 'y'
-        }
-    })
+    retrieve_http(url='url', method=stub, use_auth=True, use_default_headers=False,
+                  extra_headers={
+                      'X1': 'x',
+                      'X2': 'y'
+                  })
     stub.assert_called_once_with(url='url', data=None, headers=expected_headers)
 
 

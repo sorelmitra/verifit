@@ -2,7 +2,6 @@ from datetime import datetime
 
 from requests.auth import AuthBase
 
-from .prop import get_prop
 from .cache import cache_set, cache_get
 from .config import get_store_reader, get_store_writer
 from .date_diff import date_diff_in_minutes
@@ -14,25 +13,21 @@ set_env = get_store_writer()
 ACCESS_TOKEN = 'accessToken'
 EXPIRY_DATE = 'expiryDate'
 LOGIN_DATA = 'loginData'
-USERNAME = 'username'
-PASSWORD = 'password'
-USER = 'user'
-DRIVER = 'driver'
 
 
 def get_expiry_date(login_data):
-    return datetime.fromisoformat(get_prop(login_data)(EXPIRY_DATE))
+    return datetime.fromisoformat(login_data.get(EXPIRY_DATE))
 
 
-def login(config):
-    access_token = config[DRIVER](config[USER])
+def login(driver=None, username=None, password=None):
+    access_token = driver(username=username, password=password)
     decoded_token = decode_token(access_token)
     token_expiry_date = get_token_expiration_date(decoded_token)
     login_data = {
         ACCESS_TOKEN: access_token,
         EXPIRY_DATE: token_expiry_date.isoformat()
     }
-    cache_set(config[USER][USERNAME])(login_data)
+    cache_set(username)(login_data)
     set_env(LOGIN_DATA)(login_data)
     return login_data
 
@@ -53,16 +48,16 @@ def get_login_values_from_cache(username):
         return None
     print(f"Cache hit key <{username}>")
     login_data = {
-        ACCESS_TOKEN: get_prop(user_cached_data)(ACCESS_TOKEN),
+        ACCESS_TOKEN: user_cached_data.get(ACCESS_TOKEN),
         EXPIRY_DATE: token_expiry_date
     }
     return login_data
 
 
-def login_from_cache(config):
-    login_data = get_login_values_from_cache(get_prop(config[USER])(USERNAME))
+def login_from_cache(driver=None, username=None, password=None):
+    login_data = get_login_values_from_cache(username)
     if login_data is None:
-        login_data = login(config)
+        login_data = login(driver=driver, username=username, password=password)
     print(f"Caching login data <{login_data}>")
     set_env(LOGIN_DATA)(login_data)
     return login_data
@@ -71,7 +66,7 @@ def login_from_cache(config):
 def get_bearer_authorization_header_value():
     login_data = get_env(LOGIN_DATA)
     print(f"Using cached login data <{login_data}>")
-    return f"Bearer {get_prop(login_data)(ACCESS_TOKEN)}"
+    return f"Bearer {login_data.get(ACCESS_TOKEN)}"
 
 
 def get_bearer_auth_base():
@@ -84,4 +79,4 @@ def get_bearer_auth_base():
             return r
 
     login_data = get_env(LOGIN_DATA)
-    return BearerAuth(get_prop(login_data)(ACCESS_TOKEN))
+    return BearerAuth(login_data.get(ACCESS_TOKEN))

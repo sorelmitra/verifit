@@ -1,5 +1,4 @@
 import pytest
-from verifit.prop import get_prop, get_defaulted_prop
 
 from src.verifit.driver import driver_is_one_of
 from tests.post_service.drivers.drivers import DRIVER_BAR
@@ -15,6 +14,6 @@ def test_post_with_drivers():
     }
     data = post(payload)
     assert data is not None
-    assert get_prop(data)('userId') == '2'
-    assert len(get_defaulted_prop(data)('title')('')) > 0
-    assert len(get_defaulted_prop(data)('body')('')) > 0
+    assert data.get('userId') == '2'
+    assert len(data.get('title', '')) > 0
+    assert len(data.get('body', '')) > 0

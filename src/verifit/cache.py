@@ -1,6 +1,5 @@
 import json
 
-from .prop import get_prop
 from .config import get_store_reader
 
 
@@ -34,18 +33,10 @@ def cache_set(key):
 
 def cache_get(key):
     cache = cache_read()
-    return get_prop(cache)(key)
+    return cache.get(key)
 
 
-KEY = 'key'
-ARG = 'arg'
-DESCRIBE_FUNC = 'describeFunc'
-
-
-def retrieve_and_cache(config):
-    key = config.get(KEY)
-    arg = config.get(ARG)
-    describe_func = config.get(DESCRIBE_FUNC)
+def retrieve_and_cache(key=None, arg=None, describe_func=None):
     
     def with_func(func):
         resp = cache_get(key)

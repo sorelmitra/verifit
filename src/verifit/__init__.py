@@ -4,6 +4,5 @@ from . import date_diff
 from . import json_web_token
 from . import login
 from . import memoize
-from . import prop
 from . import retrieve
 from . import web_sockets

@@ -2,7 +2,6 @@ import os
 
 from dotenv import dotenv_values
 
-from .prop import get_prop
 from .memoize import create_memoizer
 
 
@@ -23,7 +22,7 @@ def get_store_reader():
     store = memoize()
 
     def get_env(key):
-        return get_prop(store)(key)
+        return store.get(key)
 
     return get_env
 
