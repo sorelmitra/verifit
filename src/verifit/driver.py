@@ -8,11 +8,11 @@ def get_driver():
 
 
 def call_driver(drivers):
-    def with_arg(arg):
+    def with_args(**kwargs):
         driver = get_driver()
         if driver in drivers.keys():
-            return drivers.get(driver)(arg)
-    return with_arg
+            return drivers.get(driver)(**kwargs)
+    return with_args
 
 
 def driver_is_one_of(drivers):

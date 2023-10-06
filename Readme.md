@@ -87,27 +87,27 @@ The sample tests use dummy online services or commands in order to show how to t
     Assume you need to 'Post' items via two channels, 'foo', and 'bar'.  The layers would be:
     
     1. Test declaration
-    	- Does the actual testing, 'Posting' an item and verifying the result
-    	- Does not call directly to 'foo' or 'bar'
-    	- Calls to a Domain-Specific Language, aka DSL
+    	- Sketches the high-level test case: do the action - in this case, 'post' an item with some data - and verify the result
+    	- The test never calls directly to any of the drivers, but to a Domain-Specific Language, aka DSL
+      - **Both** the **action** and the **verification** are done via the DSL - this is important, because _only the particular driver can possibly know how to do the action or check its results_; attempting to abstract this would add needless overhead
     2. DSL implementation
-    	- Based on the 'driver' parameter, it calls either to 'foo' or 'bar'
+    	- Based on the 'driver' parameter, it calls to the corresponding driver
+      - We intentionally are missing one driver implementation, which is skipped both in the test and in the DSL
     3. Drivers implementation
-    	- Each driver 'Posts' items in the way it knows
-    	- There is one driver implementation for each channel, i.e., 'foo' and 'bar'
-        - If 'bar' cannot 'Post' an item, then the corresponding driver is missing 
+    	- Each driver 'posts' items in the way it knows
+      - We have a couple of drivers as a demo
 
     The files:
 
     - `drivers.py` contains the list of our particular drivers
     - The test itself is straightforward, as it imports the DSL, calls it, and verifies the result.  Note that the test is skipped for the 'bar' driver, because in our example, we are pretending that the 'bar' channel has no way to 'Post an item.
-    - `dsl_post.py`: The DSL uses the driver lib to call to the right driver from a driver map it provides.  In our case, the 'foo' driver is omitted from the map, because we know it cannot create an 'Item'.
-    - `driver_foo.py`: The 'foo' driver to 'Post' an item.  The 'bar' driver to 'Post' an item does not exist, as it cannot perform this action.
+    - `dsl_post.py`: The DSL uses the driver lib to call to the right driver from a driver map it provides.  In our case, one driver is omitted from the map, because we know it cannot 'post'.
+    - `driver_*.py`: The '*' driver to 'post' an item.  One driver is intentionally missing, to showcase how you handle such situations.
 
     To run this test via the 'bar' driver, do this:
 
     ```
-    DRIVER=bar pytest . -k 'post'
+    DRIVER=bar pytest . -k 'post_via_drivers'
     ```
    
     By default, `DRIVER` is `foo`.
