@@ -1,25 +1,25 @@
-from datetime import datetime
 import requests
 
-from verifit.config import get_store_writer, get_store_reader
-from verifit.login import ACCESS_TOKEN, EXPIRY_DATE, LOGIN_DATA
+from verifit.config import get_env_reader
+from verifit.login import ACCESS_TOKEN, EXPIRY_DATE
 from verifit.retrieve import retrieve_graphql, retrieve_http
 
-get_env = get_store_reader()
-set_env = get_store_writer()
+get_env = get_env_reader()
 
 
-def simulate_login():
-    # We're simulating login because our test GraphQL server doesn't have
-    # login, and we want to showcase using our auth helper for GraphQL
-    set_env(LOGIN_DATA)({
-        ACCESS_TOKEN: 'dummy token',
-        EXPIRY_DATE: datetime.now()
-    })
+def get_bearer_auth_base(access_token):
+    class BearerAuth(requests.auth.AuthBase):
+        def __init__(self, token):
+            self.token = token
+
+        def __call__(self, r):
+            r.headers["authorization"] = "Bearer " + self.token
+            return r
+
+    return BearerAuth(access_token)
 
 
 def test_post_graphql():
-    simulate_login()
     url = get_env('POST_SERVICE_2_URL')
     response = retrieve_graphql(
         url=url,
@@ -36,7 +36,7 @@ def test_post_graphql():
             "id": '1'
         },
         log_prefix='GraphQL Post',
-        use_auth=True
+        auth=get_bearer_auth_base('dummy token')  # This is how you authorize a GraphQL request
     )
     data = response.get('data', None)
     assert data is not None

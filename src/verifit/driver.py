@@ -1,6 +1,6 @@
-from verifit.config import get_store_reader
+from verifit.config import get_env_reader
 
-get_env = get_store_reader()
+get_env = get_env_reader()
 
 
 def get_driver():

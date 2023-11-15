@@ -1,18 +1,14 @@
 from datetime import datetime
 
-from requests.auth import AuthBase
-
 from .cache import cache_set, cache_get
-from .config import get_store_reader, get_store_writer
+from .config import get_env_reader
 from .date_tools import date_subtract_in_minutes
 from .json_web_token import decode_token, get_token_expiration_date
 
-get_env = get_store_reader()
-set_env = get_store_writer()
+get_env = get_env_reader()
 
 ACCESS_TOKEN = 'accessToken'
 EXPIRY_DATE = 'expiryDate'
-LOGIN_DATA = 'loginData'
 
 
 def get_expiry_date(login_data):
@@ -28,7 +24,6 @@ def login(driver=None, username=None, password=None):
         EXPIRY_DATE: token_expiry_date.isoformat()
     }
     cache_set(username)(login_data)
-    set_env(LOGIN_DATA)(login_data)
     return login_data
 
 
@@ -59,24 +54,5 @@ def login_from_cache(driver=None, username=None, password=None):
     if login_data is None:
         login_data = login(driver=driver, username=username, password=password)
     print(f"Caching login data <{login_data}>")
-    set_env(LOGIN_DATA)(login_data)
     return login_data
 
-
-def get_bearer_authorization_header_value():
-    login_data = get_env(LOGIN_DATA)
-    print(f"Using cached login data <{login_data}>")
-    return f"Bearer {login_data.get(ACCESS_TOKEN)}"
-
-
-def get_bearer_auth_base():
-    class BearerAuth(AuthBase):
-        def __init__(self, token):
-            self.token = token
-
-        def __call__(self, r):
-            r.headers["authorization"] = "Bearer " + self.token
-            return r
-
-    login_data = get_env(LOGIN_DATA)
-    return BearerAuth(login_data.get(ACCESS_TOKEN))

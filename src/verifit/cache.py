@@ -1,10 +1,10 @@
 import json
 
-from .config import get_store_reader
+from .config import get_env_reader
 
 
 def get_cache_filename():
-    return f".{get_store_reader()('ENV')}-cache.json"
+    return f".{get_env_reader()('ENV')}-cache.json"
 
 
 def cache_read():
@@ -37,7 +37,7 @@ def cache_get(key):
 
 
 def retrieve_and_cache(key=None, arg=None, describe_func=None):
-    
+
     def with_func(func):
         resp = cache_get(key)
         if resp is None:

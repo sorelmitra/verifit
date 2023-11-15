@@ -2,11 +2,8 @@ import json
 import requests
 from python_graphql_client import GraphqlClient
 
-from .login import get_bearer_auth_base, get_bearer_authorization_header_value
 
-
-def retrieve_graphql(url=None, query=None, variables=None, use_auth=None, log_prefix='Do a GraphQL query'):
-    auth = get_bearer_auth_base() if use_auth else None
+def retrieve_graphql(url=None, query=None, variables=None, auth=None, log_prefix='Do a GraphQL query'):
     client = GraphqlClient(endpoint=url, auth=auth)
     prefix = f"{log_prefix} to {url}"
     print(prefix, 'variables', variables)
@@ -16,7 +13,7 @@ def retrieve_graphql(url=None, query=None, variables=None, use_auth=None, log_pr
 
 
 def retrieve_http(url=None, method=requests.get, log_prefix='Do a HTTP GET request', 
-                  use_default_headers=True, use_auth=False, extra_headers={},
+                  use_default_headers=True, auth=None, extra_headers={},
                   payload=None):
     prefix = f"{log_prefix} to {url}"
 
@@ -26,8 +23,8 @@ def retrieve_http(url=None, method=requests.get, log_prefix='Do a HTTP GET reque
             headers.update({
                 'Content-Type': 'application/json'
             })
-            if use_auth:
-                headers['Authorization'] = get_bearer_authorization_header_value()
+            if auth:
+                headers['Authorization'] = auth
         headers.update(extra_headers)
         print(prefix, 'headers', headers)
         return headers

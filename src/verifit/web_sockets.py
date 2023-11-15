@@ -3,9 +3,9 @@ import json
 
 import websockets
 
-from .config import get_store_reader
+from .config import get_env_reader
 
-get_env = get_store_reader()
+get_env = get_env_reader()
 
 def ws_send_and_receive(server=None, ignore_list=None, data=None):
 

@@ -1,8 +1,8 @@
 import pytest
-from verifit.config import get_store_reader
+from verifit.config import get_env_reader
 from verifit.web_sockets import ws_send_and_receive
 
-get_env = get_store_reader()
+get_env = get_env_reader()
 
 
 @pytest.mark.skip(reason="The demo WSS server no longer accepts the API key")

@@ -1,7 +1,7 @@
-from verifit.config import get_store_reader
+from verifit.config import get_env_reader
 from verifit.retrieve import retrieve_graphql
 
-get_env = get_store_reader()
+get_env = get_env_reader()
 
 
 def bar_post(*, userId, title, body):

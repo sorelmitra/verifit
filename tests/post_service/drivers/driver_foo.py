@@ -1,9 +1,9 @@
 import requests
 
-from verifit.config import get_store_reader
+from verifit.config import get_env_reader
 from verifit.retrieve import retrieve_http
 
-get_env = get_store_reader()
+get_env = get_env_reader()
 
 
 def foo_post(*, userId, title, body):

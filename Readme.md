@@ -188,7 +188,6 @@ The environment configuration is parsed using `dotenv`.  This automatically pars
     - Building authorization values:
       - For HTTP headers.
       - For the Python GraphQL client.
-- `memoize.py`.  Simple memoize pattern, used by `config.py` to provide a single store instance for sharing data across tests.
 - `prop.py`: Access dictionary properties without raising exceptions, and with default values.
 - `retrieve.py`. Shortcut functions for calling to HTTP or GraphQL endpoints, with unified logging.
 - `web_sockets.py`.  Simplifies Web-Sockets testing by offering functions for listening in background for received packages, and sending data.

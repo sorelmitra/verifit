@@ -1,10 +1,9 @@
 from verifit.cache import cache_get, cache_set, retrieve_and_cache
-from verifit.config import get_store_reader, get_store_writer
-from verifit.login import ACCESS_TOKEN, LOGIN_DATA
+from verifit.config import get_env_reader
+from verifit.login import ACCESS_TOKEN
 from verifit.retrieve import retrieve_http
 
-get_env = get_store_reader()
-set_env = get_store_writer()
+get_env = get_env_reader()
 
 
 def test_cache():
@@ -36,9 +35,8 @@ def test_retrieve_default_headers(mocker):
         'Content-Type': 'application/json',
         'Authorization': 'Bearer x',
     }
-    set_env(LOGIN_DATA)({ACCESS_TOKEN: 'x'})
     stub = mocker.stub(name='method')
-    retrieve_http(url='url', method=stub, use_auth=True)
+    retrieve_http(url='url', method=stub, auth='Bearer x')
     stub.assert_called_once_with(url='url', data=None, headers=expected_headers)
 
 
@@ -49,9 +47,8 @@ def test_retrieve_extra_headers(mocker):
         'X1': 'x',
         'X2': 'y'
     }
-    set_env(LOGIN_DATA)({ACCESS_TOKEN: 'x'})
     stub = mocker.stub(name='method')
-    retrieve_http(url='url', method=stub, use_auth=True,
+    retrieve_http(url='url', method=stub, auth='Bearer x',
                   extra_headers={
                       'X1': 'x',
                       'X2': 'y'
@@ -64,9 +61,8 @@ def test_retrieve_custom_headers(mocker):
         'X1': 'x',
         'X2': 'y'
     }
-    set_env(LOGIN_DATA)({ACCESS_TOKEN: 'x'})
     stub = mocker.stub(name='method')
-    retrieve_http(url='url', method=stub, use_auth=True, use_default_headers=False,
+    retrieve_http(url='url', method=stub, auth='Bearer x', use_default_headers=False,
                   extra_headers={
                       'X1': 'x',
                       'X2': 'y'

@@ -1,10 +1,10 @@
 import os
+from functools import cache
 
 from dotenv import dotenv_values
 
-from .memoize import create_memoizer
 
-
+@cache
 def config():
     environment_name = os.environ.get('ENV', 'dev')
     os.environ['ENV'] = environment_name
@@ -15,25 +15,10 @@ def config():
     return values
 
 
-memoize = create_memoizer(config)
-
-
-def get_store_reader():
-    store = memoize()
+def get_env_reader():
+    store = config()
 
     def get_env(key):
         return store.get(key)
 
     return get_env
-
-
-def get_store_writer():
-    store = memoize()
-
-    def get_env_key_writer(key):
-        def set_env_key(value):
-            store[key] = value
-
-        return set_env_key
-
-    return get_env_key_writer
