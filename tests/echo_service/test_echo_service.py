@@ -5,7 +5,6 @@ from verifit.web_sockets import ws_send_and_receive
 get_env = get_env_reader()
 
 
-@pytest.mark.skip(reason="The demo WSS server no longer accepts the API key")
 def test_echo_service():
     data = ws_send_and_receive(server=get_env('ECHO_SERVICE_URL'), ignore_list=['ping', 'Hello world!'],
                                data={
