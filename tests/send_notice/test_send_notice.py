@@ -48,16 +48,22 @@ def notice_process_event(name):
 # The test
 
 def test_send_notice():
+    # Start the WebHook server, that offers a endpoint for receiving the hook data
     q = multiprocessing.Queue()
     server = webhook_server_start(q)
 
+    # Register the WebHook endpoint in our dummy notice app
     notice_register_observer(event='foo', url=webhook_url())
+    
+    # Trigger the WebHook event in the dummy notice app
     notice_process_event('foo')
     
+    # Stop the WebHook server
     server.terminate()
     server.join()
     server.close()
     
+    # Verify the WebHook event that was received
     webhook_response = q.get()
     assert webhook_response == {
         "payload": {

@@ -1,4 +1,3 @@
-import pytest
 from verifit.config import get_env_reader
 from verifit.web_sockets import ws_send_and_receive
 
