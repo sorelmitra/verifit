@@ -1,5 +1,6 @@
-verifit >= 4.0.1
+verifit >= 4.1.0
 
+flask
 PyJWT
 pytest
 pytest-bdd

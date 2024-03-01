@@ -123,13 +123,13 @@ The sample tests use dummy online services or commands in order to show how to t
 
 6. `echo_service/test_echo_service.py`.  Shows how to simplify testing WebSockets using our library.
 
-    **Note**: As of _2023-04-26_, the online server that we were using for this sample test stopped accepting the API key that they provide.  As a result, we've marked this test as skipped.
+7. `send_notice/test_send_notice.py`.  Shows how to test WebHooks using our library.
 
-7. `date_service/test_date.py`.  Shows how to test CLI programs using this lib: it runs the shell command `date` with some arguments, and verifies the resulting output.
+8. `date_service/test_date.py`.  Shows how to test CLI programs using this lib: it runs the shell command `date` with some arguments, and verifies the resulting output.
 
-8. `self_check/test_self.py`.  Tests the lib itself.
+9. `self_check/test_self.py`.  Tests the lib itself.
 
-9. `kitchen_service/test_kitchen_service.py`.  Showcase doing a Web UI test using Cypress.IO and their kitchen sink sample page.
+10. `kitchen_service/test_kitchen_service.py`.  Showcase doing a Web UI test using Cypress.IO and their kitchen sink sample page.
 
 To prepare for running the sample tests that are included with this project, do this:
 
@@ -188,8 +188,9 @@ The environment configuration is parsed using `dotenv`.  This automatically pars
     - Building authorization values:
       - For HTTP headers.
       - For the Python GraphQL client.
-- `prop.py`: Access dictionary properties without raising exceptions, and with default values.
-- `retrieve.py`. Shortcut functions for calling to HTTP or GraphQL endpoints, with unified logging.
+- `prop.py`:  Access dictionary properties without raising exceptions, and with default values.
+- `retrieve.py`.  Shortcut functions for calling to HTTP or GraphQL endpoints, with unified logging.
+- `web_hooks.py`.  Helper for WebHooks testing, that provids a server which listens on an endpoint, and returns the received payload in a `multiprocessing.Queue`.
 - `web_sockets.py`.  Simplifies Web-Sockets testing by offering functions for listening in background for received packages, and sending data.
 
 
