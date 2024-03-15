@@ -1,4 +1,4 @@
-verifit >= 4.2.1
+verifit >= 4.2.2
 
 flask
 PyJWT

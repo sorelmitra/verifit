@@ -72,6 +72,12 @@ def webhook_server_start(*, queue, status=200, succeed_at_attempt_no=0):
     return server
 
 
+def webhook_server_stop(server):
+    server.terminate()
+    server.join()
+    server.close()
+
+
 def queue_is_empty(q):
     try:
         q.get(timeout=1)
