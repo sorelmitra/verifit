@@ -83,7 +83,6 @@ def test_send_notice_fails():
         notice_register_observer(event='foo', url=webhook_url())
         status = notice_process_event('foo')
         
-        # Check the results, must be done after stopping the server
         assert status == 406
         for _ in range(0, 3):
             webhook_response = q.get(timeout=1)
