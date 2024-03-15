@@ -56,13 +56,10 @@ def test_send_notice_succeeds():
     server = webhook_server_start(queue=q)
 
     try:
-        # Register the WebHook endpoint in our dummy notice app
+        # Register and trigger the WebHook endpoint in our dummy notice app
         notice_register_observer(event='foo', url=webhook_url())
-        
-        # Trigger the WebHook event in the dummy notice app
         status = notice_process_event('foo')
         
-        # Check the results, must be done after stopping the server
         assert status == 200
         webhook_response = q.get(timeout=1)
         assert webhook_response == {
@@ -82,10 +79,8 @@ def test_send_notice_fails():
     server = webhook_server_start(queue=q, status=406)
 
     try:
-        # Register the WebHook endpoint in our dummy notice app
+        # Register and trigger the WebHook endpoint in our dummy notice app
         notice_register_observer(event='foo', url=webhook_url())
-        
-        # Trigger the WebHook event in the dummy notice app
         status = notice_process_event('foo')
         
         # Check the results, must be done after stopping the server
@@ -104,14 +99,13 @@ def test_send_notice_second_attempt_succeeds():
     server = webhook_server_start(queue=q, status=406, succeed_at_attempt_no=2)
 
     try:
-        # Register the WebHook endpoint in our dummy notice app
+        # Register and trigger the WebHook endpoint in our dummy notice app
         notice_register_observer(event='foo', url=webhook_url())
-        
-        # Trigger the WebHook event in the dummy notice app
         status = notice_process_event('foo')
         
-        # Check the results, must be done after stopping the server
-        assert status == 202  # our helper webhook server returns 202 if it succeeds after a failure
+        # Our helper webhook server returns 202 if it succeeds after a failure,
+        # and the dummy app forwards it
+        assert status == 202
         # First attempt fails
         webhook_response = q.get(timeout=1)
         assert webhook_response == { "success": False }
