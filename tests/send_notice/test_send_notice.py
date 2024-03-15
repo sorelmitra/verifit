@@ -60,7 +60,6 @@ def test_send_notice_succeeds():
     
     # Trigger the WebHook event in the dummy notice app
     status = notice_process_event('foo')
-    assert 200 <= status <= 299
     
     # Stop the WebHook server
     server.terminate()
@@ -68,6 +67,7 @@ def test_send_notice_succeeds():
     server.close()
     
     # Check the results, must be done after stopping the server
+    assert status == 200
     webhook_response = q.get(timeout=1)
     assert webhook_response == {
         "payload": {
