@@ -1,6 +1,7 @@
 from functools import cache
 from multiprocessing import Process
 import time
+import queue
 from flask import Flask, request, json
 
 
@@ -25,6 +26,9 @@ def webhook_url():
 
 
 KEY_QUEUE = 'queue'
+KEY_CALLS_COUNT = 'calls_count'
+KEY_STATUS_TO_RETURN = 'status_to_return'
+KEY_SUCCEED_AT_ATTEMPT_NO = 'succeed_at_attempt_no'
 
 
 @cache
@@ -38,18 +42,41 @@ def webhook_observer():
     q = store.get(KEY_QUEUE)
     webhook_response = request.json
     print(f"Payload: {webhook_response}")
-    q.put(webhook_response)
-    return json.dumps({"success": True}), 200
+    status_to_return = store.get(KEY_STATUS_TO_RETURN)
+    succeed_at_attempt_no = store.get(KEY_SUCCEED_AT_ATTEMPT_NO)
+    calls_count = store.get(KEY_CALLS_COUNT)
+    calls_count = calls_count + 1
+    store[KEY_CALLS_COUNT] = calls_count
+    if succeed_at_attempt_no > 0:
+        if calls_count >= succeed_at_attempt_no:
+            status_to_return = 202
+    success = 200 <= status_to_return <= 299
+    local_response = {"success": success}
+    q.put(webhook_response if success else local_response)
+    return json.dumps(local_response), status_to_return
 
 
-def start_webhook_observer(q):
+def start_webhook_observer(q, s, a):
     store = get_store()
     store[KEY_QUEUE] = q
+    store[KEY_CALLS_COUNT] = 0
+    store[KEY_STATUS_TO_RETURN] = s
+    store[KEY_SUCCEED_AT_ATTEMPT_NO] = a
     api().run(port=port())
 
 
-def webhook_server_start(q):
-    server = Process(target=start_webhook_observer, args=(q,))
+def webhook_server_start(*, queue, status=200, succeed_at_attempt_no=0):
+    server = Process(target=start_webhook_observer, args=(queue, status, succeed_at_attempt_no))
     server.start()
-    time.sleep(3)
+    time.sleep(2)
     return server
+
+
+def queue_is_empty(q):
+    try:
+        q.get(timeout=1)
+        return False
+    except queue.Empty:
+        return True
+    except:
+        assert False
