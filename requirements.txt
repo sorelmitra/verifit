@@ -3,10 +3,9 @@ pytest
 pytest-bdd
 python-dotenv
 python_graphql_client
-requests
+requests >= 2.31.0
 websockets
 
-[dev]
 build
 twine
 check-manifest

@@ -1,4 +1,4 @@
-verifit >= 4.2.2
+verifit >= 4.3.0
 
 flask
 PyJWT
@@ -7,5 +7,5 @@ pytest-bdd
 pytest-mock
 python-dotenv
 python_graphql_client
-requests
+requests >= 2.31.0
 websockets

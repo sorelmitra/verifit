@@ -123,7 +123,7 @@ The sample tests use dummy online services or commands in order to show how to t
 
 6. `echo_service/test_echo_service.py`.  Shows how to simplify testing WebSockets using our library.
 
-7. `send_notice/test_send_notice.py`.  Shows how to test WebHooks using our library.
+7. `notice/test_notice.py`.  Shows how to test WebHooks and apps that are supposed to call HTTP endpoints, using our library.
 
 8. `date_service/test_date.py`.  Shows how to test CLI programs using this lib: it runs the shell command `date` with some arguments, and verifies the resulting output.
 
@@ -190,7 +190,7 @@ The environment configuration is parsed using `dotenv`.  This automatically pars
       - For the Python GraphQL client.
 - `prop.py`:  Access dictionary properties without raising exceptions, and with default values.
 - `retrieve.py`.  Shortcut functions for calling to HTTP or GraphQL endpoints, with unified logging.
-- `web_hooks.py`.  Helper for WebHooks testing, that provids a server which listens on an endpoint, and returns the received payload in a `multiprocessing.Queue`.
+- `http_server.py`.  Tiny HTTP server, that provides a few endpoints, and returns the received payload in a `multiprocessing.Queue`.
 - `web_sockets.py`.  Simplifies Web-Sockets testing by offering functions for listening in background for received packages, and sending data.
 
 
