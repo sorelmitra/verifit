@@ -56,9 +56,10 @@ class HttpConfig:
 
 
 KEY_QUEUE = 'queue'
-KEY_CALLS_COUNT = 'calls_count'
-KEY_STATUS_TO_RETURN = 'status_to_return'
-KEY_SUCCEED_AT_ATTEMPT_NO = 'succeed_at_attempt_no'
+KEY_ENDPOINT_INDEX = 'endpoint_index'
+KEY_ENDPOINT_RESULTS = 'endpoint_results'
+KEY_ENDPOINT_PREVIOUS_CALL_FAILED = 'endpoint_previous_call_failed'
+KEY_ENDPOINT_CURRENT_PAYLOAD = 'endpoint_current_payload'
 KEY_GRAPHQL_SCHEMA = 'graphql_schema'
 
 
@@ -68,36 +69,50 @@ def get_store():
 
 
 class EndpointResult:
-    def __init__(self, *, success, status_code, response_data):
-        self.success = success
+    def __init__(self, *, status_code=200, response_data=None):
         self.status_code = status_code
         self.response_data = response_data
+
+    def is_successful(self):
+        return 200 <= self.status_code <= 299
 
 
 def determine_endpoint_result() -> EndpointResult:
     store = get_store()
-    status_to_return = store.get(KEY_STATUS_TO_RETURN)
-    succeed_at_attempt_no = store.get(KEY_SUCCEED_AT_ATTEMPT_NO)
-    calls_count = store.get(KEY_CALLS_COUNT)
-    calls_count = calls_count + 1
-    store[KEY_CALLS_COUNT] = calls_count
-    if succeed_at_attempt_no > 0:
-        if calls_count >= succeed_at_attempt_no:
-            status_to_return = 202
-    success = 200 <= status_to_return <= 299
-    response = {"success": success}
-    return EndpointResult(
-        success=success, status_code=status_to_return, response_data=response)
+    endpoint_results: list[EndpointResult] = store.get(KEY_ENDPOINT_RESULTS)
+    endpoint_index = store.get(KEY_ENDPOINT_INDEX)
+
+    if endpoint_index < len(endpoint_results):
+        endpoint_result = endpoint_results[endpoint_index]
+    else:
+        current_payload = store.get(KEY_ENDPOINT_CURRENT_PAYLOAD, None)
+        endpoint_result = EndpointResult(
+            status_code=200,
+            response_data=current_payload if current_payload is not None else {"success": True}
+        )
+
+    if store.get(KEY_ENDPOINT_PREVIOUS_CALL_FAILED) and endpoint_result.is_successful():
+        endpoint_result.status_code = 202
+
+    if not endpoint_result.is_successful():
+        store[KEY_ENDPOINT_PREVIOUS_CALL_FAILED] = True
+
+    print(f"Endpoint {endpoint_index} Result: {endpoint_result.status_code} {endpoint_result.response_data}")
+
+    endpoint_index = endpoint_index + 1
+    store[KEY_ENDPOINT_INDEX] = endpoint_index
+    return endpoint_result
 
 
 @api().route(HttpConfig.POST_PATH, methods=['POST'])
 def post_listener():
     store = get_store()
     q = store.get(KEY_QUEUE)
-    post_response = request.json
-    print(f"Post Payload: {post_response}")
+    post_payload = request.json
+    print(f"Post Payload: {post_payload}")
+    store[KEY_ENDPOINT_CURRENT_PAYLOAD] = post_payload
     endpoint_result = determine_endpoint_result()
-    q.put(post_response if endpoint_result.success else endpoint_result.response_data)
+    q.put(endpoint_result.response_data)
     return json.dumps(endpoint_result.response_data), endpoint_result.status_code
 
 
@@ -114,10 +129,11 @@ def get_listener():
 def put_listener():
     store = get_store()
     q = store.get(KEY_QUEUE)
-    put_response = request.json
-    print(f"Put Payload: {put_response}")
+    put_payload = request.json
+    print(f"Put Payload: {put_payload}")
+    store[KEY_ENDPOINT_CURRENT_PAYLOAD] = put_payload
     endpoint_result = determine_endpoint_result()
-    q.put(put_response if endpoint_result.success else endpoint_result.response_data)
+    q.put(endpoint_result.response_data)
     return json.dumps(endpoint_result.response_data), endpoint_result.status_code
 
 
@@ -125,10 +141,11 @@ def put_listener():
 def patch_listener():
     store = get_store()
     q = store.get(KEY_QUEUE)
-    patch_response = request.json
-    print(f"Patch Payload: {patch_response}")
+    patch_payload = request.json
+    print(f"Patch Payload: {patch_payload}")
+    store[KEY_ENDPOINT_CURRENT_PAYLOAD] = patch_payload
     endpoint_result = determine_endpoint_result()
-    q.put(patch_response if endpoint_result.success else endpoint_result.response_data)
+    q.put(endpoint_result.response_data)
     return json.dumps(endpoint_result.response_data), endpoint_result.status_code
 
 
@@ -159,7 +176,7 @@ def graphql_server():
 @convert_kwargs_to_snake_case
 def get_notice_resolver(_obj, _info, id):
     endpoint_result = determine_endpoint_result()
-    if endpoint_result.success:
+    if endpoint_result.is_successful():
         payload = {
             "success": True,
             "notice": {
@@ -170,7 +187,9 @@ def get_notice_resolver(_obj, _info, id):
     else:
         payload = {
             "success": False,
-            "errors": [f"Notice item matching {id} not found"]
+            "errors": [
+                endpoint_result.response_data if endpoint_result.response_data is not None
+                else f"Notice item matching {id} not found"]
         }
     print(f"GraphQL Get Notice Payload: {payload}")
     return payload
@@ -179,7 +198,7 @@ def get_notice_resolver(_obj, _info, id):
 @convert_kwargs_to_snake_case
 def create_notice_resolver(_obj, _info, title):
     endpoint_result = determine_endpoint_result()
-    if endpoint_result.success:
+    if endpoint_result.is_successful():
         payload = {
             "success": True,
             "notice": {
@@ -197,12 +216,11 @@ def create_notice_resolver(_obj, _info, title):
 
 
 def http_server_start_process(
-        response_queue, status_to_return, succeed_at_attempt_no, graphql_schema):
+        response_queue, endpoint_results: list[EndpointResult], graphql_schema):
     store = get_store()
     store[KEY_QUEUE] = response_queue
-    store[KEY_CALLS_COUNT] = 0
-    store[KEY_STATUS_TO_RETURN] = status_to_return
-    store[KEY_SUCCEED_AT_ATTEMPT_NO] = succeed_at_attempt_no
+    store[KEY_ENDPOINT_INDEX] = 0
+    store[KEY_ENDPOINT_RESULTS] = [] if endpoint_results is None else endpoint_results
 
     if graphql_schema is None:
         type_definitions = load_schema_from_path(os.path.join(get_script_dir(), "schema.graphql"))
@@ -220,10 +238,10 @@ def http_server_start_process(
 
 
 def http_server_start(
-        *, response_queue, status=200, succeed_at_attempt_no=0, graphql_schema=None):
+        *, response_queue, endpoint_results: list[EndpointResult]=None, graphql_schema=None):
     server = Process(
         target=http_server_start_process,
-        args=(response_queue, status, succeed_at_attempt_no, graphql_schema))
+        args=(response_queue, endpoint_results, graphql_schema))
     server.start()
     time.sleep(2)
     return server

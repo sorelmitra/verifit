@@ -190,7 +190,7 @@ The environment configuration is parsed using `dotenv`.  This automatically pars
       - For the Python GraphQL client.
 - `prop.py`:  Access dictionary properties without raising exceptions, and with default values.
 - `retrieve.py`.  Shortcut functions for calling to HTTP or GraphQL endpoints, with unified logging.
-- `http_server.py`.  Tiny HTTP server, that provides a few endpoints, and returns the received payload in a `multiprocessing.Queue`.  It also provides a GraphQL server, that serves a sample schema, and also supports serving a custom schema.
+- `http_server.py`.  Tiny HTTP server, that provides a few endpoints, and puts the response in a `multiprocessing.Queue`, so responses for multiple calls can be checked in a test.  It supports a different response for each call.  It also provides a GraphQL server, that serves a sample schema, and also supports serving a custom schema.
 - `web_sockets.py`.  Simplifies Web-Sockets testing by offering functions for listening in background for received packages, and sending data.
 
 

@@ -7,7 +7,7 @@ from functools import cache
 from ariadne import load_schema_from_path, ObjectType, make_executable_schema, \
     snake_case_fallback_resolvers, convert_kwargs_to_snake_case
 
-from verifit.http_server import http_server_start, http_server_stop, HttpConfig, queue_is_empty
+from verifit.http_server import http_server_start, http_server_stop, HttpConfig, queue_is_empty, EndpointResult
 from verifit.retrieve import retrieve_graphql
 
 
@@ -17,7 +17,7 @@ from verifit.retrieve import retrieve_graphql
 #
 #
 #
-# Helper function
+# HTTP helper functions
 #
 #
 #
@@ -130,23 +130,33 @@ def test_send_notice_succeeds():
 
 def test_send_notice_fails():
     q = multiprocessing.Queue()
-    server = http_server_start(response_queue=q, status=406)
+    server = http_server_start(
+        response_queue=q,
+        endpoint_results=[
+            EndpointResult(status_code=406, response_data={"reason": f"foo error {i}"})
+            for i in range(0, 3)
+        ]
+    )
 
     try:
-        status = send_notice_with_retries(HttpConfig.post_url())
+        send_notice_with_retries(HttpConfig.post_url())
 
-        assert status == 406
-        for _ in range(0, 3):
+        for i in range(0, 3):
             webhook_response = q.get(timeout=1)
-            assert webhook_response == { "success": False }
+            assert webhook_response == {"reason": f"foo error {i}"}
         assert queue_is_empty(q)
     finally:
         http_server_stop(server)
 
 
-def test_send_notice_second_attempt_succeeds():
+def test_send_notice_second_attempt_succeeds_default_response():
     q = multiprocessing.Queue()
-    server = http_server_start(response_queue=q, status=406, succeed_at_attempt_no=2)
+    server = http_server_start(
+        response_queue=q,
+        endpoint_results=[
+            EndpointResult(status_code=406, response_data={"reason": f"foo error"})
+        ]
+    )
 
     try:
         status = send_notice_with_retries(HttpConfig.post_url())
@@ -156,7 +166,7 @@ def test_send_notice_second_attempt_succeeds():
         assert status == 202
         # First attempt fails
         webhook_response = q.get(timeout=1)
-        assert webhook_response == { "success": False }
+        assert webhook_response == {"reason": f"foo error"}
         # Second attempt succeeds
         webhook_response = q.get(timeout=1)
         assert webhook_response == {
@@ -172,13 +182,41 @@ def test_send_notice_second_attempt_succeeds():
         http_server_stop(server)
 
 
+def test_send_notice_second_attempt_succeeds_custom_response():
+    q = multiprocessing.Queue()
+    server = http_server_start(
+        response_queue=q,
+        endpoint_results=[
+            EndpointResult(status_code=406, response_data={"reason": f"foo error"}),
+            EndpointResult(status_code=203, response_data={"foo": "bar"})
+        ]
+    )
+
+    try:
+        status = send_notice_with_retries(HttpConfig.post_url())
+
+        # Our HTTP server returns 202 if it succeeds after a failure,
+        # and the dummy app forwards it
+        assert status == 202
+        # First attempt fails
+        webhook_response = q.get(timeout=1)
+        assert webhook_response == {"reason": f"foo error"}
+        # Second attempt succeeds
+        webhook_response = q.get(timeout=1)
+        assert webhook_response == {"foo": "bar"}
+        # No further calls to our webhook server
+        assert queue_is_empty(q)
+    finally:
+        http_server_stop(server)
+
+
 #
 #
 #
 #
 #
 #
-# Tests for other HTTP methods
+# HTTP GET tests
 #
 #
 #
@@ -195,26 +233,68 @@ def test_get_notice_success():
         status = get_notice_with_retries(HttpConfig.get_url())
         assert status == 200
         get_response = q.get(timeout=1)
-        assert get_response == { "success": True }
+        assert get_response == {"success": True}
         assert queue_is_empty(q)
     finally:
         http_server_stop(server)
 
 
-def test_get_notice_second_attempt_succeeds():
+def test_get_notice_second_attempt_succeeds_default_response():
     q = multiprocessing.Queue()
-    server = http_server_start(response_queue=q, status=406, succeed_at_attempt_no=2)
+    server = http_server_start(
+        response_queue=q,
+        endpoint_results=[
+            EndpointResult(status_code=406, response_data={"reason": f"foo error"})
+        ]
+    )
 
     try:
         status = get_notice_with_retries(HttpConfig.get_url())
         assert status == 202
         get_response = q.get(timeout=1)
-        assert get_response == { "success": False }
+        assert get_response == {"reason": f"foo error"}
         get_response = q.get(timeout=1)
-        assert get_response == { "success": True }
+        assert get_response == {"success": True}
         assert queue_is_empty(q)
     finally:
         http_server_stop(server)
+
+
+def test_get_notice_second_attempt_succeeds_custom_response():
+    q = multiprocessing.Queue()
+    server = http_server_start(
+        response_queue=q,
+        endpoint_results=[
+            EndpointResult(status_code=406, response_data={"reason": f"foo error"}),
+            EndpointResult(status_code=203, response_data={"foo": "bar"})
+        ]
+    )
+
+    try:
+        status = get_notice_with_retries(HttpConfig.get_url())
+        assert status == 202
+        get_response = q.get(timeout=1)
+        assert get_response == {"reason": f"foo error"}
+        get_response = q.get(timeout=1)
+        assert get_response == {"foo": "bar"}
+        assert queue_is_empty(q)
+    finally:
+        http_server_stop(server)
+
+
+#
+#
+#
+#
+#
+#
+# HTTP PUT tests
+#
+#
+#
+#
+#
+#
 
 
 def test_put_notice_success():
@@ -237,15 +317,20 @@ def test_put_notice_success():
         http_server_stop(server)
 
 
-def test_put_notice_second_attempt_succeeds():
+def test_put_notice_second_attempt_succeeds_default_response():
     q = multiprocessing.Queue()
-    server = http_server_start(response_queue=q, status=406, succeed_at_attempt_no=2)
+    server = http_server_start(
+        response_queue=q,
+        endpoint_results=[
+            EndpointResult(status_code=406, response_data={"reason": f"foo error"})
+        ]
+    )
 
     try:
         status = put_notice_with_retries(HttpConfig.put_url())
         assert status == 202
         put_response = q.get(timeout=1)
-        assert put_response == { "success": False }
+        assert put_response == {"reason": f"foo error"}
         put_response = q.get(timeout=1)
         assert put_response == {
             "notice": "foo",
@@ -257,6 +342,43 @@ def test_put_notice_second_attempt_succeeds():
         assert queue_is_empty(q)
     finally:
         http_server_stop(server)
+
+
+def test_put_notice_second_attempt_succeeds_custom_response():
+    q = multiprocessing.Queue()
+    server = http_server_start(
+        response_queue=q,
+        endpoint_results=[
+            EndpointResult(status_code=406, response_data={"reason": f"foo error"}),
+            EndpointResult(status_code=203, response_data={"foo": "bar"})
+        ]
+    )
+
+    try:
+        status = put_notice_with_retries(HttpConfig.put_url())
+        assert status == 202
+        put_response = q.get(timeout=1)
+        assert put_response == {"reason": f"foo error"}
+        put_response = q.get(timeout=1)
+        assert put_response == {"foo": "bar"}
+        assert queue_is_empty(q)
+    finally:
+        http_server_stop(server)
+
+
+#
+#
+#
+#
+#
+#
+# HTTP PATCH tests
+#
+#
+#
+#
+#
+#
 
 
 def test_patch_notice_success():
@@ -278,15 +400,20 @@ def test_patch_notice_success():
         http_server_stop(server)
 
 
-def test_patch_notice_second_attempt_succeeds():
+def test_patch_notice_second_attempt_succeeds_default_response():
     q = multiprocessing.Queue()
-    server = http_server_start(response_queue=q, status=406, succeed_at_attempt_no=2)
+    server = http_server_start(
+        response_queue=q,
+        endpoint_results=[
+            EndpointResult(status_code=406, response_data={"reason": f"foo error"})
+        ]
+    )
 
     try:
         status = patch_notice_with_retries(HttpConfig.patch_url())
         assert status == 202
         patch_response = q.get(timeout=1)
-        assert patch_response == { "success": False }
+        assert patch_response == {"reason": f"foo error"}
         patch_response = q.get(timeout=1)
         assert patch_response == {
             "notice": "foo",
@@ -299,6 +426,43 @@ def test_patch_notice_second_attempt_succeeds():
         http_server_stop(server)
 
 
+def test_patch_notice_second_attempt_succeeds_custom_response():
+    q = multiprocessing.Queue()
+    server = http_server_start(
+        response_queue=q,
+        endpoint_results=[
+            EndpointResult(status_code=406, response_data={"reason": f"foo error"}),
+            EndpointResult(status_code=203, response_data={"foo": "bar"})
+        ]
+    )
+
+    try:
+        status = patch_notice_with_retries(HttpConfig.patch_url())
+        assert status == 202
+        patch_response = q.get(timeout=1)
+        assert patch_response == {"reason": f"foo error"}
+        patch_response = q.get(timeout=1)
+        assert patch_response == {"foo": "bar"}
+        assert queue_is_empty(q)
+    finally:
+        http_server_stop(server)
+
+
+#
+#
+#
+#
+#
+#
+# HTTP DELETE tests
+#
+#
+#
+#
+#
+#
+
+
 def test_delete_notice_success():
     q = multiprocessing.Queue()
     server = http_server_start(response_queue=q)
@@ -307,23 +471,50 @@ def test_delete_notice_success():
         status = delete_notice_with_retries(HttpConfig.delete_url())
         assert status == 200
         delete_response = q.get(timeout=1)
-        assert delete_response == { "success": True }
+        assert delete_response == {"success": True}
         assert queue_is_empty(q)
     finally:
         http_server_stop(server)
 
 
-def test_delete_notice_second_attempt_succeeds():
+def test_delete_notice_second_attempt_succeeds_default_response():
     q = multiprocessing.Queue()
-    server = http_server_start(response_queue=q, status=406, succeed_at_attempt_no=2)
+    server = http_server_start(
+        response_queue=q,
+        endpoint_results=[
+            EndpointResult(status_code=406, response_data={"reason": f"foo error"})
+        ]
+    )
 
     try:
         status = delete_notice_with_retries(HttpConfig.delete_url())
         assert status == 202
         delete_response = q.get(timeout=1)
-        assert delete_response == { "success": False }
+        assert delete_response == {"reason": f"foo error"}
         delete_response = q.get(timeout=1)
-        assert delete_response == { "success": True }
+        assert delete_response == {"success": True}
+        assert queue_is_empty(q)
+    finally:
+        http_server_stop(server)
+
+
+def test_delete_notice_second_attempt_succeeds_custom_response():
+    q = multiprocessing.Queue()
+    server = http_server_start(
+        response_queue=q,
+        endpoint_results=[
+            EndpointResult(status_code=406, response_data={"reason": f"foo error"}),
+            EndpointResult(status_code=203, response_data={"foo": "bar"})
+        ]
+    )
+
+    try:
+        status = delete_notice_with_retries(HttpConfig.delete_url())
+        assert status == 202
+        delete_response = q.get(timeout=1)
+        assert delete_response == {"reason": f"foo error"}
+        delete_response = q.get(timeout=1)
+        assert delete_response == {"foo": "bar"}
         assert queue_is_empty(q)
     finally:
         http_server_stop(server)
@@ -415,7 +606,12 @@ def test_get_notice_graphql_succeeds():
 
 def test_get_notice_graphql_second_attempt_succeeds():
     q = multiprocessing.Queue()
-    server = http_server_start(response_queue=q, status=406, succeed_at_attempt_no=2)
+    server = http_server_start(
+        response_queue=q,
+        endpoint_results=[
+            EndpointResult(status_code=406, response_data=f"foo error")
+        ]
+    )
 
     try:
         response = launch_graphql_get_notice('foo')
@@ -423,7 +619,7 @@ def test_get_notice_graphql_second_attempt_succeeds():
             "data": {
                 "getNotice": {
                     "success": False,
-                    "errors": ["Notice item matching foo not found"],
+                    "errors": ["foo error"],
                     "notice": None
                 }
             }
@@ -471,7 +667,12 @@ def test_create_notice_graphql_succeeds():
 
 def test_create_notice_graphql_second_attempt_succeeds():
     q = multiprocessing.Queue()
-    server = http_server_start(response_queue=q, status=406, succeed_at_attempt_no=2)
+    server = http_server_start(
+        response_queue=q,
+        endpoint_results=[
+            EndpointResult(status_code=406)
+        ]
+    )
 
     try:
         response = launch_graphql_create_notice('foo notice')
