@@ -153,7 +153,6 @@ def graphql_server():
         debug=api().debug
     )
     status_code = 200 if success else 400
-    print('XXXXXXXX', result, status_code)
     return jsonify(result), status_code
 
 
