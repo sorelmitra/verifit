@@ -1,13 +1,20 @@
+import os
 from functools import cache
 from multiprocessing import Process
 import time
 import queue
-from flask import Flask, request, json
+from flask import Flask, request, json, jsonify
+from ariadne import load_schema_from_path, make_executable_schema, \
+    graphql_sync, snake_case_fallback_resolvers, ObjectType, convert_kwargs_to_snake_case
+
+
+def get_script_dir():
+    return os.path.dirname(__file__)
 
 
 @cache
 def api():
-    return Flask('webhook-observer-server')
+    return Flask('simple-http-server')
 
 
 class HttpConfig:
@@ -17,6 +24,7 @@ class HttpConfig:
     PUT_PATH = '/update'
     PATCH_PATH = '/patch'
     DELETE_PATH = '/delete'
+    GRAPHQL_PATH = '/graphql'
 
     @staticmethod
     def base_url():
@@ -42,11 +50,16 @@ class HttpConfig:
     def delete_url():
         return f"{HttpConfig.base_url()}{HttpConfig.DELETE_PATH}"
 
+    @staticmethod
+    def graphql_url():
+        return f"{HttpConfig.base_url()}{HttpConfig.GRAPHQL_PATH}"
+
 
 KEY_QUEUE = 'queue'
 KEY_CALLS_COUNT = 'calls_count'
 KEY_STATUS_TO_RETURN = 'status_to_return'
 KEY_SUCCEED_AT_ATTEMPT_NO = 'succeed_at_attempt_no'
+KEY_GRAPHQL_SCHEMA = 'graphql_schema'
 
 
 @cache
@@ -82,7 +95,7 @@ def post_listener():
     store = get_store()
     q = store.get(KEY_QUEUE)
     post_response = request.json
-    print(f"Payload: {post_response}")
+    print(f"Post Payload: {post_response}")
     endpoint_result = determine_endpoint_result()
     q.put(post_response if endpoint_result.success else endpoint_result.response_data)
     return json.dumps(endpoint_result.response_data), endpoint_result.status_code
@@ -102,7 +115,7 @@ def put_listener():
     store = get_store()
     q = store.get(KEY_QUEUE)
     put_response = request.json
-    print(f"Payload: {put_response}")
+    print(f"Put Payload: {put_response}")
     endpoint_result = determine_endpoint_result()
     q.put(put_response if endpoint_result.success else endpoint_result.response_data)
     return json.dumps(endpoint_result.response_data), endpoint_result.status_code
@@ -113,7 +126,7 @@ def patch_listener():
     store = get_store()
     q = store.get(KEY_QUEUE)
     patch_response = request.json
-    print(f"Payload: {patch_response}")
+    print(f"Patch Payload: {patch_response}")
     endpoint_result = determine_endpoint_result()
     q.put(patch_response if endpoint_result.success else endpoint_result.response_data)
     return json.dumps(endpoint_result.response_data), endpoint_result.status_code
@@ -128,19 +141,90 @@ def delete_listener():
     return json.dumps(endpoint_result.response_data), endpoint_result.status_code
 
 
-def http_server_start_process(response_queue, status_to_return, succeed_at_attempt_no):
+@api().route(HttpConfig.GRAPHQL_PATH, methods=["POST"])
+def graphql_server():
+    store = get_store()
+    schema = store.get(KEY_GRAPHQL_SCHEMA)
+    data = request.get_json()
+    success, result = graphql_sync(
+        schema,
+        data,
+        context_value=request,
+        debug=api().debug
+    )
+    status_code = 200 if success else 400
+    print('XXXXXXXX', result, status_code)
+    return jsonify(result), status_code
+
+
+@convert_kwargs_to_snake_case
+def get_notice_resolver(_obj, _info, id):
+    endpoint_result = determine_endpoint_result()
+    if endpoint_result.success:
+        payload = {
+            "success": True,
+            "notice": {
+                "id": id,
+                "title": 'foo notice'
+            }
+        }
+    else:
+        payload = {
+            "success": False,
+            "errors": [f"Notice item matching {id} not found"]
+        }
+    print(f"GraphQL Get Notice Payload: {payload}")
+    return payload
+
+
+@convert_kwargs_to_snake_case
+def create_notice_resolver(_obj, _info, title):
+    endpoint_result = determine_endpoint_result()
+    if endpoint_result.success:
+        payload = {
+            "success": True,
+            "notice": {
+                "id": 'foo',
+                "title": title
+            }
+        }
+    else:
+        payload = {
+            "success": False,
+            "errors": [f"Notice item not created"]
+        }
+    print(f"GraphQL Create Notice Payload: {payload}")
+    return payload
+
+
+def http_server_start_process(
+        response_queue, status_to_return, succeed_at_attempt_no, graphql_schema):
     store = get_store()
     store[KEY_QUEUE] = response_queue
     store[KEY_CALLS_COUNT] = 0
     store[KEY_STATUS_TO_RETURN] = status_to_return
     store[KEY_SUCCEED_AT_ATTEMPT_NO] = succeed_at_attempt_no
+
+    if graphql_schema is None:
+        type_definitions = load_schema_from_path(os.path.join(get_script_dir(), "schema.graphql"))
+        query = ObjectType("Query")
+        query.set_field("getNotice", get_notice_resolver)
+        mutation = ObjectType("Mutation")
+        mutation.set_field("createNotice", create_notice_resolver)
+        store[KEY_GRAPHQL_SCHEMA] = make_executable_schema(
+            type_definitions, query, mutation, snake_case_fallback_resolvers
+        )
+    else:
+        store[KEY_GRAPHQL_SCHEMA] = graphql_schema()
+
     api().run(port=HttpConfig.PORT)
 
 
-def http_server_start(*, response_queue, status=200, succeed_at_attempt_no=0):
+def http_server_start(
+        *, response_queue, status=200, succeed_at_attempt_no=0, graphql_schema=None):
     server = Process(
         target=http_server_start_process,
-        args=(response_queue, status, succeed_at_attempt_no))
+        args=(response_queue, status, succeed_at_attempt_no, graphql_schema))
     server.start()
     time.sleep(2)
     return server
