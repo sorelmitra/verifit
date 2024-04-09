@@ -1,5 +1,2 @@
-include *.env
 include *.py
-include *.txt
-include src/verifit/*.graphql
-recursive-exclude tests *
+recursive-exclude test *

@@ -4,10 +4,6 @@ venv
 .vscode
 __pycache__
 .pytest_cache
-.*-cache.json
-node_modules
-screenshots
-videos
-downloads
+cache.json
 verifit.egg-info
 dist

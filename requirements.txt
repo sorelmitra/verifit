@@ -1,12 +1,6 @@
 PyJWT
 pytest
-pytest-bdd
-python-dotenv
-python_graphql_client
-requests >= 2.31.0
-websockets
-flask
-ariadne
+jsonpickle
 
 build
 twine

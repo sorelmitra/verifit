@@ -1,298 +1,40 @@
-# About
 
-This is a Python library aimed at developers, that simplifies setting up and using automatic system testing for several types of projects.
+# Authentication Tools Library
 
-I've named it `verifit` as a contraction of `Verify It!`, i.e. "Make sure your system works fine!"
+This small Python library provides a few tools designed to facilitate the writing of automated tests for any type of application. It encompasses functionalities for login procedures, a caching mechanism for efficient data retrieval, a utility for simulating successful and failed communication results, and a few operations for date and time calculations. The library aims to streamline authentication tasks, improve performance via caching strategies, and assist with testing apps that depend on other services or APIs.
 
 
+# Project Structure
 
-# Introduction
+The project is organized into two main directories, `src` for the source code and `test` for the self-test suite, ensuring the functionality is thoroughly verified.
 
-## Why Developer-Based Automatic System Testing?
+## Source Code (`src`)
 
-Automatic system (or application-level) testing done by developers is a must for every project.  Even if you have a dedicated QA team, automatic system testing is a very valuable tool for making sure your product works as expected:
+The `src` directory encapsulates the core functionalities divided into several modules:
 
-- It allows developers to be very confident of the quality of the products that they ship.
-- It lowers the risk of breaking older functionality as you add a new one.
-- It makes bug investigation easier - if you know that the behavior shown in the bug passes in your automated tests, then the source must be elsewhere, such as misconfiguration or wrong parameter.
-- It makes QA team's life easier by helping them design their tests.
+- **`endpoint_tools.py`**: Manages endpoint results, including checks for success and configuration for sequences of endpoint results. By 'endpoint' we really mean any type of communication from your app to some other service that returns a payload and some status code. So with this library you're not tied to a particular type of service or API.
 
-## Why This Libray?
+- **`cache.py`**: Provides caching functionalities to store, retrieve, and manage any type of JSON-serializable data, enhancing performance and data retrieval efficiency.
 
-For the above to work, though, the developers must be maintaining their tests along with the code base, or even better, do TDD.
+- **`json_web_token.py`**: Facilitates operations related to JWTs, such as decoding and extracting expiration dates, used in the cache mechanism.
 
-This library aims to make a developer's life easier by providing a handful of commonly used options, such as environment variables or making authorized HTTPS requests.  The goal is to get started with automated tests right away!
+- **`date_tools.py`**: Contains utilities for date and time calculations, supporting operations like token expiration checks.
 
-## Side Note: Black Box Testing
+- **`login.py`**: Handles login operations, leveraging JWT validation and caching for optimized login processes. The module only does the bookkeeping around logging in. The actual log in is done by the user of the library, via a very simple `driver` mechanism - you need to supply a function that takes a username and secret, and returns an access token as a JWT string. So, apart from JTW, this library is not tied to any particular authentication mechanism.
 
-There are multiple ways of writing automated tests, and this library is not tied to any particular methodology.
+Each module is documented inline, offering insights into their functionalities and usage.
 
-However, one particular testing methodology I favor is **black box testing**, in which you treat your system as a black box, and *never check its internals*.  I find it has quite a few advantages, and I thought I'd list some of them here:
+## Tests (`test`)
 
-- Easy to put in place.  You just hit your system in the same way its clients would.  No need to write code that checks databases, message queues, or who knows what.
-- Can serve as acceptance or end-to-end testing.
-- It's not affected by implementation changes in the system that's being tested.
+The `test` directory includes tests for the source code's functionality, structured as follows:
 
+- **`test_login.py`**: Ensures the login process, including token handling and caching, works as expected under various scenarios.
 
+- **`test_endpoint_tools.py`**: Verifies the endpoint results simulation, with both success and failure cases.
 
+Tests are implemented with `pytest`, which is a robust framework for validating each component's correctness and reliability.
 
-# Overview
 
-This library supports any type of tests that you write in Python, using any testing framework.
+# Conclusion
 
-For our sample tests, we use the PyTest runner & framework.
-
-Normally, if you're using PyTest and a few other standard Python modules, you can test pretty much anything quite fast, without needing a library.  However, as you start doing this, you soon realize you're going to need some things over and over again in your tests.  This small library provides a few helpers for making a developer's automatic testing easier:
-
-- Quick configuration & data sharing between tests.
-- A cache for speeding up things such as getting access tokens, or any other data that is being reused.
-- Log in and caching the access token.
-- Some helper tools, like date, JWT, accessing dictionary properties, etc.
-- Web-Sockets testing.  (I couldn't find a Python package that makes testing Web-Sockets as easy as calling a couple of functions.)
-
-This repo consists of the actual library, which is in `src/verifit/`, and some sample tests from which you can inspire when writing your own.
-
-
-# Quick Start with Writing Tests
-
-## 1. Install Required Libraries
-
-- Install Python 3.6 or higher.
-- Install PyTest.
-- Copy the [requirements from the sample tests](https://github.com/sorelmitra/verifit/blob/main/tests/requirements.txt) to your PyTest project.  Adjust them to suit your needs, and then install them.
-
-## 2. Read the Sample Tests & Configs
-
-We have a `tests/` directory that shows how to use this library. Please make sure to read this section while browsing that folder. It will get you started real quick.
-
-### 2.1. Sample Configs
-
-The following configs are made in order to run the sample tests:
-
-- `requirements.txt`: Lists `verifit`, as well as other packages used by it or by our sample tests.
-- `.dev.env`: Hosts configuration for our tests, such as endpoints or users.
-- `__init__.py`: Needed for local imports.
-- `conftest.py`: Needed for local imports.
-
-### 2.2. Sample Tests
-
-The sample tests use dummy online services or commands in order to show how to test various types of applications, and how to use our lib: 
-
-1. `post_service/post/test_post.py`. Tests simple APIs using HTTP and GraphQL servers.
-
-2. `post_service/drivers/test_post_via_drivers.py`. The same as `test_post.py`, but showcasing using different drivers.
-
-   If you need to run your tests through multiple channels, then it's best if you keep your tests unified, and add a couple of layers to help directing the tests through the right channel.
-
-    Assume you need to 'Post' items via two channels, 'foo', and 'bar'.  The layers would be:
-    
-    1. Test declaration
-    	- Sketches the high-level test case: do the action - in this case, 'post' an item with some data - and verify the result
-    	- The test never calls directly to any of the drivers, but to a Domain-Specific Language, aka DSL
-      - **Both** the **action** and the **verification** are done via the DSL - this is important, because _only the particular driver can possibly know how to do the action or check its results_; attempting to abstract this would add needless overhead
-    2. DSL implementation
-    	- Based on the 'driver' parameter, it calls to the corresponding driver
-      - We intentionally are missing one driver implementation, which is skipped both in the test and in the DSL
-    3. Drivers implementation
-    	- Each driver 'posts' items in the way it knows
-      - We have a couple of drivers as a demo
-
-    The files:
-
-    - `drivers.py` contains the list of our particular drivers
-    - The test itself is straightforward, as it imports the DSL, calls it, and verifies the result.  Note that the test is skipped for the 'bar' driver, because in our example, we are pretending that the 'bar' channel has no way to 'Post an item.
-    - `dsl_post.py`: The DSL uses the driver lib to call to the right driver from a driver map it provides.  In our case, one driver is omitted from the map, because we know it cannot 'post'.
-    - `driver_*.py`: The '*' driver to 'post' an item.  One driver is intentionally missing, to showcase how you handle such situations.
-
-    To run this test via the 'bar' driver, do this:
-
-    ```
-    DRIVER=bar pytest . -k 'post_via_drivers'
-    ```
-   
-    By default, `DRIVER` is `foo`.
-
-3. `shopping_service/login/test_login.py`. Here we test log in to a server.
-
-4. `shopping_service/login/test_products.py`. This one does the following:
-
-   - Log in from cache.  This returns the cached token if it is valid, or logs in and caches the token before returning it.
-   - Call to a private endpoint, passing in an authorization header with a cached access token.
-
-5. `shopping_service/login/test_carts.py`. It shows Gherkin features and BDD.
-
-6. `echo_service/test_echo_service.py`.  Shows how to simplify testing WebSockets using our library.
-
-7. `notice/test_notice.py`.  Shows how to test apps that call HTTP endpoints (including WebHooks), and GraphQL queries.
-
-8. `date_service/test_date.py`.  Shows how to test CLI programs using this lib: it runs the shell command `date` with some arguments, and verifies the resulting output.
-
-9. `self_check/test_self.py`.  Tests the lib itself.
-
-10. `kitchen_service/test_kitchen_service.py`.  Showcase doing a Web UI test using Cypress.IO and their kitchen sink sample page.
-
-To prepare for running the sample tests that are included with this project, do this:
-
-```shell
-cd tests
-pip install -r requirements.txt
-```
-
-To run all tests:
-
-```shell
-pytest .
-```
-
-To run only tests that are related to posts and shopping:
-
-```shell
-pytest . -k 'post_service or shopping_service'
-```
-
-## 3. Write Some Tests
-
-Using the sample configs and tests as an inspiration, go ahead and write and run your own!
-
-
-
-
-# Reference
-
-The entire library is coded using Functional Programming principles.  Thus, you will see:
-
-- Pure functions, that return the same result given the same input, and that do not have side effects.
-- Immutability & disciplined state - functions do not alter state outside them, and there's no shared state between functions.
-- Currying - at most one argument for each function.  Note that we're using Python's built-in `kwargs` as the "single argument".
-- Higher-order functions - that return another function.
-- The memoize pattern used to make sure a single instance of a thing exists (in our case the config store).
-- No global variables, not even a singleton - memoize takes care of this.
-
-## Environment
-
-The environment configuration is parsed using `dotenv`.  This automatically parses `.<ENV>.env`, where `<ENV>` is the environment, by default `dev`.  In absence of this file, you can pass in the required configuration as environment variables, e.g.: `POST_SERVICE_1_URL=https://jsonplaceholder.typicode.com DRIVER=foo POST_SERVICE_2_URL=https://graphqlzero.almansi.me/api pytest . -k post`.
-
-## Helpers
-
-- `cache.py`.  Implements a simple cache, that is being stored in a file named `.<env>-cache.json` from the `tests` directory.
-- `config.py`.  Loads configuration via the `dotenv` package, and returns a unique store for getting/setting values across tests.
-- `date_tools.py`.  Some simple date tools.
-- `driver.py`.  The driver lib is pretty simple:
-    - It gets the current driver from the environment
-    - It calls the corresponding function from a driver name / function dict
-    - It also offers a helper function to skip a test for a particular driver
-- `json_web_token.py`.  Decoding and extracting data from a JWT.
-- `login.py`.  Functions to:
-    - Log in using a driver, which is a plain function.  We use a driver for this because logging in is particular to the API that each project has.  The driver does the actual call to the API endpoint for login, and returns the access token.  The framework caches the access token and its expiration date.
-    - Log in from a cached token using a driver.
-    - Building authorization values:
-      - For HTTP headers.
-      - For the Python GraphQL client.
-- `prop.py`:  Access dictionary properties without raising exceptions, and with default values.
-- `retrieve.py`.  Shortcut functions for calling to HTTP or GraphQL endpoints, with unified logging.
-- `http_server.py`.  Tiny HTTP server, that provides a few endpoints, and puts the response in a `multiprocessing.Queue`, so responses for multiple calls can be checked in a test.  It supports a different response for each call.  It also provides a GraphQL server, that serves a sample schema, and also supports serving a custom schema.
-- `web_sockets.py`.  Simplifies Web-Sockets testing by offering functions for listening in background for received packages, and sending data.
-
-
-
-
-# Development
-
-## Library
-
-If you want to develop, build, and upload this library to PyPI, do this:
-
-First, set up a few things:
-
-- Install Python 3.6 or higher.
-- Install the requirements from `requirements.txt`.
-
-The lib code is in `src/verifit`.  Make sure to use proper `.` imports to avoid importing from the installed `verifit` library accidentally.
-
-Once your code changes are ready and documented, do the following to upload:
-
-1. Commit everything to GIT.
-
-2. Check Manifest. Run:
-
-   ```shell
-   check-manifest
-   ```
-
-3. Increase the version in `pyproject.toml`:
-
-   ```toml
-   [project]
-   version = "X.Y.Z"
-   ```
-
-4. Increase the minimum version in `tests/requirements.txt`:
-
-   ```
-   verifit >= X.Y.Z
-   ```
-
-5. Build package. Run:
-
-   ```shell
-   python -m build
-   ```
-
-6. Check build. Run:
-
-   ```shell
-   twine check dist/verifit-X.Y.Z*
-   ```
-
-7. Upload to Test.PyPI. Run:
-
-   ```shell
-   twine upload -r testpypi dist/verifit-X.Y.Z*
-   ```
-
-8. Install manually from Test.PyPI. Run:
-
-   ```shell
-   pip install -i https://test.pypi.org/simple verifit==X.Y.Z
-   ```
-    (First time it may fail, in this case, rerun the above command.)
-
-9. Run the sample tests:
-
-   ```shell
-   cd tests/ && pytest .
-   ```
-
-10. If everything goes well, upload to PyPI. Run:
-
-   ```shell
-   twine upload dist/verifit-X.Y.Z*
-   ```
-
-11. Install sample tests requirements. Run:
-
-   ```shell
-   cd tests/ && pip install -r requirements.txt
-   ```
-    (First time it may fail, in this case, rerun the above command.)
-
-12. Run the sample tests again:
-
-   ```shell
-   cd tests/ && pytest .
-   ```
-    If all went well, they should pass.
-
-13. You can now push to GIT.
-
-## Sample Tests
-
-Setup:
-
-- Go to `tests/kitchen_service/ui` and run `yarn install`.
-- Install sample tests requirements. Run:
-
-   ```shell
-   cd tests/ && pip install -r requirements.txt
-   ```
-Change tests code, then make sure to test, document, & push your changes.
+This library went through quite a few iterations.  Its present form reflects my current stance on helper libraries in general: In-house developed libraries should be kept as simple and focused as possible.  Large project templates or frameworks actually make things worse in both the long and short term, because of the time they consume for writing and maintaining them on one side, and on understanding and using them, on the other.

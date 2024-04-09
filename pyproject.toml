@@ -3,16 +3,16 @@ requires = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-package-dir = { 'verifit' = 'src/verifit' }
+package-dir = { 'verifit' = 'src' }
 packages = ['verifit']
 
 [tool.check-manifest]
-ignore = [".pytest_cache/*", "node_modules/**/*"]
+ignore = [".pytest_cache/*", "__pycache__/**/*"]
 
 [project]
 name = "verifit"
-version = "4.4.1"
-description = "Verify It: Automatic Testing helper tools & sample tests"
+version = "5.0.2"
+description = "Verify It: Small automatic testing helper tools"
 readme = "Readme.md"
 authors = [{ name = "Sorel Mitra", email = "sorelmitra@yahoo.com" }]
 license = { file = "LICENSE" }
@@ -21,15 +21,10 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
 ]
-keywords = ["automatic testing", "acceptance testing", "bdd", "Gherkin", "black box testing"]
+keywords = ["automatic testing tools", "acceptance testing tools"]
 dependencies = [
     "PyJWT",
-    "pytest",
-    "pytest-bdd",
-    "python-dotenv",
-    "python_graphql_client",
-    "requests",
-    "websockets",
+    "pytest"
 ]
 requires-python = ">=3.9"
 
