@@ -1,7 +1,7 @@
 import jwt
 import pytest
 from datetime import datetime, timedelta
-from src import login, login_from_cache, cache_set, cache_get, LoginData
+from verifit import login, login_from_cache, cache_set, cache_get, LoginData
 
 
 # Fixture for a mock authentication driver

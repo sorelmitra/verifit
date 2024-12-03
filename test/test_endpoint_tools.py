@@ -1,6 +1,6 @@
 import pytest
 import queue
-from src import EndpointResult, EndpointResultConfig, EndpointResultComputer
+from verifit import EndpointResult, EndpointResultConfig, EndpointResultComputer
 
 
 @pytest.fixture
